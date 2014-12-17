@@ -33,7 +33,7 @@ Sk.ffi.remapToPy = function (obj) {
         return new Sk.builtin.nmber(obj, undefined);
     }
     else if (typeof obj === "boolean") {
-        return obj;
+        return Sk.builtin.bool(obj);
     }
     goog.asserts.fail("unhandled remap type " + typeof(obj));
 };
@@ -76,7 +76,10 @@ Sk.ffi.remapToJs = function (obj) {
     else if (obj instanceof Sk.builtin.lng) {
         return Sk.builtin.asnum$(obj);
     }
-    else if (typeof obj === "number" || typeof obj === "boolean") {
+    else if (typeof obj === "boolean") {
+        return Sk.builtin.bool(obj);
+    }
+    else if (typeof obj === "number") {
         return obj;
     }
     else {
