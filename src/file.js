@@ -48,7 +48,7 @@ Sk.builtin.file = function (name, mode, buffering) {
             this.lineList[i] = this.lineList[i] + "\n";
         }
         this.currentLine = 0;
-    }
+    } 
     this.pos$ = 0;
 
     this.__class__ = Sk.builtin.file;
@@ -199,10 +199,23 @@ Sk.builtin.file.prototype["truncate"] = new Sk.builtin.func(function (self, size
 });
 
 Sk.builtin.file.prototype["write"] = new Sk.builtin.func(function (self, str) {
+<<<<<<< HEAD
     if (self.fileno === 1) {
         Sk.output(Sk.ffi.remapToJs(str));
     } else if (Sk.filewrite) {
         Sk.filewrite(self, str);
+=======
+    if (Sk.filewrite) {
+        if (self.closed) {
+            throw new Sk.builtin.ValueError("I/O operation on closed file");
+        }
+
+        if (self.mode.v === "w" || self.mode.v === "wb" || self.mode.v === "a" || self.mode.v === "ab") {
+            Sk.filewrite(self, str);
+        } else {
+            throw new Sk.builtin.IOError("File not open for writing");
+        }
+>>>>>>> 3f8339d... Updated config and added better error checking for file writes.
     } else {
         goog.asserts.fail();
     }
