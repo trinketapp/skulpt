@@ -673,6 +673,13 @@ Sk.builtin.open = function open (filename, mode, bufsize) {
         mode = new Sk.builtin.str("r");
     }
 
+    if (/\+/.test(mode.v)) {
+      throw "todo; haven't implemented read/write mode";
+    }
+    else if ((mode.v === "w" || mode.v === "wb" || mode.v === "a" || mode.v === "ab") && !Sk.nonreadopen) {
+        throw "todo; haven't implemented non-read opens";
+    }
+
     return new Sk.builtin.file(filename, mode, bufsize);
 };
 

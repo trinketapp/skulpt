@@ -53,6 +53,10 @@ Sk.builtin.file = function (name, mode, buffering) {
 
     this.__class__ = Sk.builtin.file;
 
+    if (Sk.fileopen && this.fileno >= 10) {
+        Sk.fileopen(this);
+    }
+
     return this;
 };
 
@@ -197,6 +201,8 @@ Sk.builtin.file.prototype["truncate"] = new Sk.builtin.func(function (self, size
 Sk.builtin.file.prototype["write"] = new Sk.builtin.func(function (self, str) {
     if (self.fileno === 1) {
         Sk.output(Sk.ffi.remapToJs(str));
+    } else if (Sk.filewrite) {
+        Sk.filewrite(self, str);
     } else {
         goog.asserts.fail();
     }
