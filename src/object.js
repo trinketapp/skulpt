@@ -101,15 +101,13 @@ Sk.builtin.object.prototype.GenericPythonGetAttr = function(self, name) {
 goog.exportSymbol("Sk.builtin.object.prototype.GenericPythonGetAttr", Sk.builtin.object.prototype.GenericPythonGetAttr);
 
 Sk.builtin.object.prototype.GenericSetAttr = function (name, value) {
-<<<<<<< 1e79ec0dcdbe679b626b9746b9cff55352c156d9
     var objname = Sk.abstr.typeName(this);
     var pyname;
     var dict;
-=======
     var descr;
     var tp;
     var f;
->>>>>>> First decorator and descriptor implementation
+
     goog.asserts.assert(typeof name === "string");
 
     tp = this.ob$type;
