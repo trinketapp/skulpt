@@ -199,12 +199,6 @@ Sk.builtin.file.prototype["truncate"] = new Sk.builtin.func(function (self, size
 });
 
 Sk.builtin.file.prototype["write"] = new Sk.builtin.func(function (self, str) {
-<<<<<<< HEAD
-    if (self.fileno === 1) {
-        Sk.output(Sk.ffi.remapToJs(str));
-    } else if (Sk.filewrite) {
-        Sk.filewrite(self, str);
-=======
     if (Sk.filewrite) {
         if (self.closed) {
             throw new Sk.builtin.ValueError("I/O operation on closed file");
@@ -215,11 +209,11 @@ Sk.builtin.file.prototype["write"] = new Sk.builtin.func(function (self, str) {
         } else {
             throw new Sk.builtin.IOError("File not open for writing");
         }
->>>>>>> 3f8339d... Updated config and added better error checking for file writes.
+    } else if (self.fileno === 1) {
+        Sk.output(Sk.ffi.remapToJs(str));
     } else {
         goog.asserts.fail();
     }
 });
-
 
 goog.exportSymbol("Sk.builtin.file", Sk.builtin.file);
