@@ -117,11 +117,35 @@ $builtinmodule = function (name) {
             Sk.builtin.pyCheckArgs("getPixels", arguments, 1, 1);
 
             for (i = 0; i < self.image.height * self.image.width; i++) {
-
                 arr[i] = Sk.misceval.callsim(self.getPixel, self,
                     i % self.image.width, Math.floor(i / self.image.width));
             }
             return new Sk.builtin.tuple(arr);
+        });
+
+        $loc.getData = new Sk.builtin.func(function (self) {
+            var arr = [];//initial array
+            var i;
+            var x;
+            var y;
+            var red;
+            var green;
+            var blue;
+            var index;
+            Sk.builtin.pyCheckArgs("getData", arguments, 1, 1);
+
+            for (i = 0; i < self.image.height * self.image.width; i++) {
+                x = i % self.image.width;
+                y = Math.floor(i / self.image.width);
+                checkPixelRange(self, x, y);
+                index = (y * 4) * self.width + (x * 4);
+                red = self.imagedata.data[index];
+                green = self.imagedata.data[index + 1];
+                blue = self.imagedata.data[index + 2];
+                arr[i] = new Sk.builtin.tuple([new Sk.builtin.int_(red), new Sk.builtin.int_(green), new Sk.builtin.int_(blue)]);
+            }
+
+            return new Sk.builtin.list(arr);
         });
 
         $loc.getPixel = new Sk.builtin.func(function (self, x, y) {
