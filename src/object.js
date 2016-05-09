@@ -43,8 +43,7 @@ Sk.builtin.object.prototype.GenericGetAttr = function (name) {
     // otherwise, look in the type for a descr
     if (descr !== undefined && descr !== null && descr.ob$type !== undefined) {
         f = descr.ob$type.tp$descr_get;
-        if (!(f) && descr["__get__"])
-        {
+        if (!(f) && descr["__get__"]) {
             f = descr["__get__"];
             return Sk.misceval.callsim(f, descr, this);
         }
@@ -118,8 +117,7 @@ Sk.builtin.object.prototype.GenericSetAttr = function (name, value) {
     // otherwise, look in the type for a descr
     if (descr !== undefined && descr !== null && descr.ob$type !== undefined) {
         // f = descr.ob$type.tp$descr_set;
-        if (!(f) && descr["__set__"])
-        {
+        if (!(f) && descr["__set__"]) {
             f = descr["__set__"];
             Sk.misceval.callsim(f, descr, this, value);
             return;

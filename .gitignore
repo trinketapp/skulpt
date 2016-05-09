@@ -16,3 +16,4 @@ test/namedtests.js
 /.c9revisions
 Vagrantfile
 v8.log
+src/internalpython.js
