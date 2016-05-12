@@ -135,6 +135,21 @@ $builtinmodule = function (name) {
             Sk.misceval.callsim(self.internalIterable.append, self.internalIterable, item);
             return Sk.builtin.none.none$;
         });
+
+        $loc.extend = new Sk.builtin.func(function(self, iterable) {
+            Sk.builtin.pyCheckArgs("__init__", arguments, 2, 2);
+
+            if (!Sk.builtin.checkIterable(iterable)) {
+                throw new Sk.builtin.TypeError("iteration over non-sequence");
+            }
+
+            for (iter = Sk.abstr.iter(iterable), item = iter.tp$iternext();
+                 item !== undefined;
+                 item = iter.tp$iternext()) {
+
+                Sk.misceval.callsim(self.internalIterable.append, self.internalIterable, item);
+            }
+        });
     };
 
     mod.array = Sk.misceval.buildClass(mod, array, "array", []);
