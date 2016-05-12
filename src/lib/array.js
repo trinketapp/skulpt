@@ -92,6 +92,8 @@ $builtinmodule = function (name) {
 
             self.$d.mp$ass_subscript(new Sk.builtin.str("typecode"), typecode);
 
+            self.$d.mp$ass_subscript(new Sk.builtin.str("__module__"), new Sk.builtin.str("array"));
+
             self.typecode = typecode;
 
             if (initialiser === undefined) {
@@ -104,7 +106,7 @@ $builtinmodule = function (name) {
                      item !== undefined;
                      item = iter.tp$iternext()) {
 
-                    Sk.misceval.callsim(self.internalIterable.append, self.internalIterablem, item);
+                    Sk.misceval.callsim(self.internalIterable.append, self.internalIterable, item);
                 }
             }
         });
@@ -121,7 +123,9 @@ $builtinmodule = function (name) {
             }
 
             return new Sk.builtin.str("array('" + typecodeJs + "'" + iterableJs + ")");
-        })
+        });
+
+        $loc.__str__ = $loc.__repr__;
 
         $loc.__getattribute__ = new Sk.builtin.func(function (self, attr) {
             return self.tp$getattr(Sk.ffi.remapToJs(attr));
@@ -131,11 +135,11 @@ $builtinmodule = function (name) {
             Sk.misceval.callsim(self.internalIterable.append, self.internalIterable, item);
             return Sk.builtin.none.none$;
         });
-
-        $loc.tp$getattr = Sk.builtin.object.prototype.GenericGetAttr;
     };
 
     mod.array = Sk.misceval.buildClass(mod, array, "array", []);
+
+    mod.__name__ = new Sk.builtin.str('array');
 
     return mod;
 };
