@@ -13,6 +13,9 @@ class FBDevice:
         self.data = [[0, 0, 0] for i in range(0, 64)] # we store the data as 8x8=64 items
         self.index = 0
         self.gamma = [0]*32
+        
+        _isa.init()
+        _isa.setpixels(self.data)
 
     def seek(self, offset, whence=0):
         """
