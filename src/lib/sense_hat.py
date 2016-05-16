@@ -277,8 +277,9 @@ class SenseHat(object):
         for index, pix in enumerate(pixel_list):
             # Two bytes per pixel in fb memory, 16 bit RGB565
             # But our own device just stores the tuples as they are
-            f.seek(map[index // 8][index % 8])  # row, column
-            f.write(pix)
+            #f.seek(map[index // 8][index % 8])  # row, column
+            #f.write(pix)
+            self._fb_device.setpixel(map[index // 8][index % 8], pix)
         
 
     def get_pixels(self):
@@ -295,8 +296,10 @@ class SenseHat(object):
                 # Two bytes per pixel in fb memory, 16 bit RGB565
                 # Our imple. stores the tuples, so that we can use them
                 # directly
-                f.seek(map[row][col])  # row, column
-                pixel_list.append(f.read(1)) # read on item
+                #f.seek(map[row][col])  # row, column
+                pix = self._fb_device.getpixel(map[y][x])
+                #pixel_list.append(f.read(1)) # read on item
+                pixel_list.append(pix)
 
         return pixel_list
 
@@ -333,13 +336,14 @@ class SenseHat(object):
                 raise ValueError('Pixel elements must be between 0 and 255')
 
         #with open(self._fb_device, 'wb') as f:
-        f = self._fb_device
+        #f = self._fb_device
         map = self._pix_map[self._rotation]
         # Two bytes per pixel in fb memory, 16 bit RGB565
         # Our custom module stores the tuples not the 16bit value
-        f.seek(map[y][x])  # row, column translated into 1 dim
-        print('rotated_row_col', y, x, map[y][x])
-        f.write(pixel)
+        #f.seek(map[y][x])  # row, column translated into 1 dim
+        #print('rotated_row_col', y, x, map[y][x])
+        #f.write(pixel)
+        self._fb_device.setpixel(map[y][x], pixel)
 
     def get_pixel(self, x, y):
         """
@@ -356,11 +360,12 @@ class SenseHat(object):
         pix = None
 
         #with open(self._fb_device, 'rb') as f:
-        f = self._fb_device
+        #f = self._fb_device
         map = self._pix_map[self._rotation]
         # Two bytes per pixel in fb memory, 16 bit RGB565
-        f.seek(map[y][x])  # row, column
-        pix = f.read(1) # read the (R, G, B) tuple at the current position
+        #f.seek(map[y][x])  # row, column
+        #pix = f.read(1) # read the (R, G, B) tuple at the current position
+        pix = self._fb_device.getpixel(map[y][x])
 
         return pix
 

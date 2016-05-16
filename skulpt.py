@@ -718,15 +718,16 @@ def dist(options):
     # Make the compressed distribution.
     compfn = os.path.join(DIST_DIR, OUTFILE_MIN)
     builtinfn = os.path.join(DIST_DIR, OUTFILE_LIB)
+    
+    if options.disabletests == False:
+        # Run tests on uncompressed.
+        if options.verbose:
+            print ". Running tests on uncompressed..."
 
-    # Run tests on uncompressed.
-    if options.verbose:
-        print ". Running tests on uncompressed..."
-
-    ret = test()
-    if ret != 0:
-        print "Tests failed on uncompressed version."
-        sys.exit(1);
+        ret = test()
+        if ret != 0:
+            print "Tests failed on uncompressed version."
+            sys.exit(1);
 
     # compress
     uncompfiles = ' '.join(['--js ' + x for x in getFileList(FILE_TYPE_DIST)])
@@ -747,18 +748,19 @@ def dist(options):
         print "closure-compiler failed."
         sys.exit(1)
 
-    # Run tests on compressed.
-    if options.verbose:
-        print ". Running tests on compressed..."
-    buildNamedTestsFile()
-    ret = os.system("{0} {1} {2}".format(jsengine, compfn, ' '.join(TestFiles)))
-    if ret != 0:
-        print "Tests failed on compressed version."
-        sys.exit(1)
-    ret = rununits(opt=True)
-    if ret != 0:
-        print "Tests failed on compressed unit tests"
-        sys.exit(1)
+    if options.disabletests == False:
+        # Run tests on compressed.
+        if options.verbose:
+            print ". Running tests on compressed..."
+        buildNamedTestsFile()
+        ret = os.system("{0} {1} {2}".format(jsengine, compfn, ' '.join(TestFiles)))
+        if ret != 0:
+            print "Tests failed on compressed version."
+            sys.exit(1)
+        ret = rununits(opt=True)
+        if ret != 0:
+            print "Tests failed on compressed unit tests"
+            sys.exit(1)
 
     doc()
 
@@ -1242,6 +1244,7 @@ def main():
     parser.add_option("-q", "--quiet",        action="store_false", dest="verbose")
     parser.add_option("-s", "--silent",       action="store_true",  dest="silent",       default=False)
     parser.add_option("-u", "--uncompressed", action="store_true",  dest="uncompressed", default=False)
+    parser.add_option("-d", "--disabletests", action="store_true", dest="disabletests", default=False)
     parser.add_option("-v", "--verbose",
         action="store_true",
         dest="verbose",

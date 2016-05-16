@@ -1,10 +1,17 @@
+/**
+ * Internal SenseHat Module for reading and writing values from
+ * JavaScript World to the Python World. This modules set ups
+ * the commmunication and allows to read and write pixels. If the
+ * "Sk.sense_hat_emit" config is present, we emit events when
+ * values are changed: Python -> JavaScript
+ */
 var $builtinmodule = function (name) {
     var mod = {};
     
     mod.init = new Sk.builtin.func(function () {
         // check if the pixels array does already exist and or create it
         if(!Sk.sense_hat) {
-            Sk.sense_hat = {};
+            throw new Error('SenseHat Browser storage must be set: Sk.sense_hat must exist');
         }
         
         // create 64 (8x8) empty array for the leds
@@ -12,13 +19,27 @@ var $builtinmodule = function (name) {
             Sk.sense_hat.pixels = [];
         }
         
-        if (!Sk.sense_hat.isHighGamma) {
-            
+        if (!Sk.sense_hat.low_light) {
+            // ToDo:
+            Sk.sense_hat.low_light = false;
         }
         
         // gamma is stored as a 32 bit value (so should we store it as a number or array?)
         if (!Sk.sense_hat.gamma) {
             Sk.sense_hat.gamma = []; // lookup table (@see https://pythonhosted.org/sense-hat/api/#gamma)
+        }
+        
+        // Sensor stuff, all reads should never fail
+        if (!Sk.sense_hat.rtimu) {
+            Sk.sense_hat.rtimu = {
+                pressure: [1, 0], /* isValid, pressure*/
+                temperature: [1, 0], /* isValid, temperature */
+                humidity: [1, 0], /* isValid, humidity */
+                gyro: [0, 0, 0],
+                accel: [0, 0, 0],
+                compass: [0, 0, 0],
+                fusionPose: [0, 0, 0]
+            }
         }
         
         if (Sk.sense_hat_emit) {
@@ -41,7 +62,7 @@ var $builtinmodule = function (name) {
         }
 
         if (Sk.sense_hat_emit) {
-            Sk.sense_hat_emit('setpixel', index);
+            Sk.sense_hat_emit('setpixel', _index);
         }
     });
 
@@ -91,16 +112,23 @@ var $builtinmodule = function (name) {
     });
 
     mod.getGamma = new Sk.builtin.func(function () {
+        var gamma = Sk.ffi.remapToPy(Sk.sense_hat.gamma);
         
+        return gamma;
     });
 
-    mod.setGamma = new Sk.builtin.func(function () {
+    mod.setGamma = new Sk.builtin.func(function (gamma) {
+        // checks are made in fb_device.py
+        var _gamma = Sk.ffi.remapToJs(gamma);
+        Sk.sense_hat.gamma = _gamma;
+        
         if (Sk.sense_hat_emit) {
             Sk.sense_hat_emit('setGamma');
         }
     });
 
     mod.resetGamma = new Sk.builtin.func(function () {
+        // ToDo: figure out how what the base values are
         if (Sk.sense_hat_emit) {
             Sk.sense_hat_emit('resetGamma');
         }
@@ -108,15 +136,25 @@ var $builtinmodule = function (name) {
 
     // RTIMU stuff
     mod.pressureRead = new Sk.builtin.func(function () {
+        var dataArray = [].concat(Sk.sense_hat.rtimu.pressure, Sk.sense_hat.rtimu.temperature);
+        var _dataArray = Sk.ffi.remapToPy(dataArray);
+        var data = new Sk.builtin.tuple(_dataArray);
         
+        return data;
     });
     
     mod.humidityRead = new Sk.builtin.func(function () {
+        var dataArray = [].concat(Sk.sense_hat.rtimu.humidity, Sk.sense_hat.rtimu.temperature);
+        var _dataArray = Sk.ffi.remapToPy(dataArray);
+        var data = new Sk.builtin.tuple(_dataArray);
         
+        return data;
     });
 
     mod.temperatureRead = new Sk.builtin.func(function () {
+        var temperature = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.temperature);
         
+        return temperature;
     });
 
     return mod;

@@ -1,4 +1,4 @@
-import _internal_sense_hat as _isa
+import _internal_sense_hat as _ish
 
 """
     Custom fb_device implementation that stubs the file descriptor hardware access
@@ -14,60 +14,34 @@ class FBDevice:
         self.index = 0
         self.gamma = [0]*32
         
-        _isa.init()
-        _isa.setpixels(self.data)
+        _ish.init()
+        _ish.setpixels(self.data)
 
-    def seek(self, offset, whence=0):
-        """
-        The offset is basically the index in our internal list of RGB entries
-        :param offset:
-        :param whence:
-        :return:
-        """
-        if whence == 0:
-            # seek from start of file
-            self.index = offset
-        elif whence == 1:
-            # to current position
-            if offset != 0:
-                raise ValueError('"offset" must be zero if seeking to current position')
-        elif whence == 2:
-            if offset != 0:
-                raise ValueError('"offset" must be zero if seeking to end position')
-            self.index = len(self.data) - 1
-        else:
-            raise ValueError('invalid value for argument "whence"')
-
-    def write(self, t):
-        print('FBDevice:write index=', self.index, t)
-        self.data[self.index] = t
-
-    def tell(self):
-        return self.index # transform back to bytes
-
-    def read(self, count):
-        # ignore basically count, we only return items
-        data = self.data[self.index]
-
-        # update position
-        self.index += count
-        return data
-
-    def close(self):
-        pass
+    def setpixel(self, index, value):
+        _ish.setpixel(index, value)
+        
+    def getpixel(self, index):
+        return _ish.getpixel(index)
+        
+    def setpixels(self, values):
+        _ish.setpixels(values)
+        
+    def getpixels(self):
+        return _ish.getpixels()
 
     def ioctl(self, request, arg=0, mutate_flag=True):
         if addr == FBDevice.SENSE_HAT_FB_FBIOGET_GAMMA:
             # mimic the function behavior
             for i in range(0, len(arg)):
-                arg[i] = self.gamma[i]
+                #arg[i] = self.gamma[i]
+                arg[i] = _ish.getGamma()
         elif request == FBDevice.SENSE_HAT_FB_FBIOSET_GAMMA:
             if len(arg) != 32:
                 raise OSError('Setting gamma requires 32 values')
             self.gamma = list(arg)
         elif request == FBDevice.SENSE_HAT_FB_FBIORESET_GAMMA:
-            self.gamma = [arg]*32
-
+            #self.gamma = [arg]*32
+            _ish.setGamma(arg)
         else:
             # ToDo: check if we need to todo this
             raise OSError('Unsupported operation')

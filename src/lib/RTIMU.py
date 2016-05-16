@@ -1,3 +1,4 @@
+import _internal_sense_hat as _ish
 
 class RTIMU:
   """
@@ -110,7 +111,7 @@ class RTPressure:
     
   def pressureRead(self):
     # return Py_BuildValue("idid", data.pressureValid, data.pressure, data.temperatureValid, data.temperature);
-    return (1, 0.23, 1, 3.4)
+    return _ish.pressureRead();
   
   def pressureName(self):
     return "DUNNO"
@@ -136,7 +137,7 @@ class RTHumidity:
       Get current values
     """
     #return Py_BuildValue("idid", data.humidityValid, data.humidity, data.temperatureValid, data.temperature);
-    return (1, 0.45, 1, 23.4)
+    return _ish.humidityRead();
 
   def humidityType(self):
     """
