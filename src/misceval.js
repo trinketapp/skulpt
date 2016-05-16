@@ -1187,10 +1187,19 @@ Sk.misceval.applyOrSuspend = function (func, kwdict, varargseq, kws, args) {
                     args.push(i);
                 }
             }
+
             if (kwdict) {
-                goog.asserts.fail("kwdict not implemented;");
+                var jsargs = Sk.ffi.remapToJs(kwdict);
+                if (args.length + jsargs.length === func.func_code.co_varnames.length) {
+                    throw new Sk.builtin.TypeError(Sk.ffi.remapToJs(func.func_code.co_name) + "() takes exactly " + func.func_code.co_varnames.length +  " arguments (" + (args.length + jsargs.length) + " given)")
+                }
+
+                for (var i = args.length; i < func.func_code.co_varnames.length; i++) {
+                    args.push(jsargs[func.func_code.co_varnames[i]]);
+                }
             }
-            return fcall.call(func, args, kws, kwdict);
+
+            return fcall.call(func, args, kws, {});
         }
 
         // todo; can we push this into a tp$call somewhere so there's
