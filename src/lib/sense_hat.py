@@ -8,6 +8,7 @@ import array
 
 # custom modules required for integrating our hooks
 from fb_device import FBDevice
+from _sense_hat_text_dict import TEXT_DICT
 
 class SenseHat(object):
 
@@ -32,8 +33,8 @@ class SenseHat(object):
 
         # 0 is With B+ HDMI port facing downwards
         pix_map0 = [
-             [0,  1,  2,  3,  4,  5,  6,  7],
-             [8,  9, 10, 11, 12, 13, 14, 15],
+            [0, 1, 2, 3, 4, 5, 6, 7],
+            [8,  9, 10, 11, 12, 13, 14, 15],
             [16, 17, 18, 19, 20, 21, 22, 23],
             [24, 25, 26, 27, 28, 29, 30, 31],
             [32, 33, 34, 35, 36, 37, 38, 39],
@@ -83,6 +84,9 @@ class SenseHat(object):
         #    os.path.join(dir_path, '%s.png' % text_assets),
         #    os.path.join(dir_path, '%s.txt' % text_assets)
         #)
+        
+        # we do not need to pass any paths as we use hard coded values (trinket)
+        self._load_text_assets("", "")
 
         # Load IMU settings and calibration data
         self._imu_settings = self._get_settings_file(imu_settings_file)
@@ -117,17 +121,20 @@ class SenseHat(object):
         show_message function below
         """
 
-        text_pixels = self.load_image(text_image_file, False)
+        #text_pixels = self.load_image(text_image_file, False)
         # ToDo: refactor this to not use with statement
-        f = open(text_file, 'r')
-        loaded_text = f.read()
-        f.close()
-        self._text_dict = {}
-        for index, s in enumerate(loaded_text):
-            start = index * 40
-            end = start + 40
-            char = text_pixels[start:end]
-            self._text_dict[s] = char
+        #f = open(text_file, 'r')
+        #loaded_text = f.read()
+        #f.close()
+        #self._text_dict = {}
+        #for index, s in enumerate(loaded_text):
+        #    start = index * 40
+        #    end = start + 40
+        #    char = text_pixels[start:end]
+        #    self._text_dict[s] = char
+        
+        # we just load the hardcoded data
+        self._text_dict = TEXT_DICT
 
     def _trim_whitespace(self, char):  # For loading text assets only
         """
