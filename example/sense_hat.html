@@ -1859,7 +1859,6 @@ print s.pressure
                 
                 var led = document.getElementById('e' + ledIndex);
                 
-                // ToDo: add check for low_light
                 if (ledData[0] > lowlightLimit || ledData[1] > lowlightLimit || ledData[2] > lowlightLimit) {
                     var colorVal = "rgb(" + ledData[0] + "," + ledData[1] + "," + ledData[2] + ")";
                     led.style.fill = colorVal;
@@ -1871,6 +1870,13 @@ print s.pressure
                     lowlightLimit = 8;
                 } else {
                     lowlightLimit = 47;
+                }
+            } else if (event && event === 'init') {
+                for (var i = 0; i < 64; i++) {
+                    var ledData = window.sense_hat.pixels[i];
+                    var led = document.getElementById('e' + i);
+                    led.style.fill = "#F6F6F6";
+                    window.sense_hat.pixels[i] = [0, 0, 0]; // reset
                 }
             }
         }

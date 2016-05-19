@@ -15,10 +15,14 @@ var $builtinmodule = function (name) {
         }
         
         // create 64 (8x8) empty array for the leds
-        if (!Sk.sense_hat.pixels) {
-            Sk.sense_hat.pixels = [];
+        if (!Sk.sense_hat.pixels || Sk.sense_hat.pixels.length === 0) {
+            Sk.sense_hat.pixels = []
+            for (var i = 0; i < 64; i++) {
+                Sk.sense_hat.pixels.push([0, 0, 0]);
+            }
         }
         
+
         if (!Sk.sense_hat.low_light) {
             Sk.sense_hat.low_light = false;
         }
