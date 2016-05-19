@@ -304,10 +304,10 @@ class SenseHat(object):
                 # Our imple. stores the tuples, so that we can use them
                 # directly
                 #f.seek(map[row][col])  # row, column
-                pix = self._fb_device.getpixel(map[y][x])
+                pix = self._fb_device.getpixel(map[row][col])
                 #pixel_list.append(f.read(1)) # read on item
                 pixel_list.append(pix)
-
+        
         return pixel_list
 
     def set_pixel(self, x, y, *args):
@@ -385,7 +385,7 @@ class SenseHat(object):
         if not os.path.exists(file_path):
             raise IOError('%s not found' % file_path)
 
-        #img = Image.open(file_path).convert('RGB')
+        img = Image.open(file_path).convert('RGB')
         # ToDo: replace this with the Image module
         pixel_list = list(map(list, img.getdata()))
 

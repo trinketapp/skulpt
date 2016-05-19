@@ -74,9 +74,9 @@ var $builtinmodule = function (name) {
         _index = Sk.ffi.remapToJs(index);
         
         try {
-            _value = Sk.sense_hat.pixels[_index] = _value;
+            _value = Sk.sense_hat.pixels[_index];
             value = Sk.ffi.remapToPy(_value); // should return a list
-            value = new Sk.builtin.list(value);
+            //value = new Sk.builtin.list(value);
         } catch (e) {
             throw new Sk.builtin.ValueError(e.message);
         }
