@@ -1,10 +1,11 @@
 #!/usr/bin/python
 import math
 import time
-#import numpy as np
+
 import RTIMU  # custom version
 import array
-#from PIL import Image  # pillow
+
+from image import Image
 
 # custom modules required for integrating our hooks
 from fb_device import FBDevice
@@ -42,7 +43,8 @@ class SenseHat(object):
             [48, 49, 50, 51, 52, 53, 54, 55],
             [56, 57, 58, 59, 60, 61, 62, 63]
         ]
-
+        
+        # Trinket: hardcoded the values, why should we recalculate them every time
         pix_map90 = [[ 7, 15, 23, 31, 39, 47, 55, 63],
                              [ 6, 14, 22, 30, 38, 46, 54, 62],
                              [ 5, 13, 21, 29, 37, 45, 53, 61],
@@ -77,15 +79,17 @@ class SenseHat(object):
 
         self._rotation = 0
 
+
+        # Trinket: we are using an internal dict for that
+        
         # Load text assets
-        # ToDo: figure out how to handle the assets
         #dir_path = os.path.dirname(__file__)
         #self._load_text_assets(
         #    os.path.join(dir_path, '%s.png' % text_assets),
         #    os.path.join(dir_path, '%s.txt' % text_assets)
         #)
         
-        # we do not need to pass any paths as we use hard coded values (trinket)
+        # Trinket: we do not need to pass any paths as we use hard coded values
         self._load_text_assets("", "")
 
         # Load IMU settings and calibration data
@@ -120,9 +124,12 @@ class SenseHat(object):
         Internal. Builds a character indexed dictionary of pixels used by the
         show_message function below
         """
+        
+        # Trinket: Replaced the loading of the image file with a internal dict.
+        #          This is faster than loading and processing the image on every run.
+        #          Keeping the code, so that we might refactor is later
 
         #text_pixels = self.load_image(text_image_file, False)
-        # ToDo: refactor this to not use with statement
         #f = open(text_file, 'r')
         #loaded_text = f.read()
         #f.close()
@@ -166,18 +173,7 @@ class SenseHat(object):
 
         ini_file = '%s.ini' % imu_settings_file
 
-        #home_dir = pwd.getpwuid(os.getuid())[5]
-        #home_path = os.path.join(home_dir, self.SETTINGS_HOME_PATH)
-        #if not os.path.exists(home_path):
-        #    os.makedirs(home_path)
-
-        #home_file = os.path.join(home_path, ini_file)
-        #home_exists = os.path.isfile(home_file)
-        #system_file = os.path.join('/etc', ini_file)
-        #system_exists = os.path.isfile(system_file)
-
-        #if system_exists and not home_exists:
-        #    shutil.copyfile(system_file, home_file)
+        # Trinket: removed os calls as we do not have a real file system
 
         return RTIMU.Settings(imu_settings_file)  # RTIMU will add .ini internally
 
@@ -188,20 +184,8 @@ class SenseHat(object):
         """
 
         device = None
-
-        #for fb in glob.glob('/sys/class/graphics/fb*'):
-        #    name_file = os.path.join(fb, 'name')
-        #    if os.path.isfile(name_file):
-        #        with open(name_file, 'r') as f:
-        #            name = f.read()
-        #        if name.strip() == self.SENSE_HAT_FB_NAME:
-        #            fb_device = fb.replace(os.path.dirname(fb), '/dev')
-        #            if os.path.exists(fb_device):
-        #                device = fb_device
-        #                break
-
-        # TODO: return our device here
-
+        
+        # Trinket: replace device identification with internal JS bridge
         device = FBDevice()
 
         return device
@@ -283,9 +267,7 @@ class SenseHat(object):
         map = self._pix_map[self._rotation]
         for index, pix in enumerate(pixel_list):
             # Two bytes per pixel in fb memory, 16 bit RGB565
-            # But our own device just stores the tuples as they are
-            #f.seek(map[index // 8][index % 8])  # row, column
-            #f.write(pix)
+            # Trinket: replace file operations with internal JS bridge
             self._fb_device.setpixel(map[index // 8][index % 8], pix)
         
 
@@ -301,11 +283,8 @@ class SenseHat(object):
         for row in range(8):
             for col in range(8):
                 # Two bytes per pixel in fb memory, 16 bit RGB565
-                # Our imple. stores the tuples, so that we can use them
-                # directly
-                #f.seek(map[row][col])  # row, column
+                # Trinket: replace file operations with internal JS bridge
                 pix = self._fb_device.getpixel(map[row][col])
-                #pixel_list.append(f.read(1)) # read on item
                 pixel_list.append(pix)
         
         return pixel_list
@@ -342,14 +321,10 @@ class SenseHat(object):
             if element > 255 or element < 0:
                 raise ValueError('Pixel elements must be between 0 and 255')
 
-        #with open(self._fb_device, 'wb') as f:
-        #f = self._fb_device
         map = self._pix_map[self._rotation]
         # Two bytes per pixel in fb memory, 16 bit RGB565
         # Our custom module stores the tuples not the 16bit value
-        #f.seek(map[y][x])  # row, column translated into 1 dim
-        #print('rotated_row_col', y, x, map[y][x])
-        #f.write(pixel)
+        # Trinket: replace file operations with internal JS bridge
         self._fb_device.setpixel(map[y][x], pixel)
 
     def get_pixel(self, x, y):
@@ -365,13 +340,9 @@ class SenseHat(object):
             raise ValueError('Y position must be between 0 and 7')
 
         pix = None
-
-        #with open(self._fb_device, 'rb') as f:
-        #f = self._fb_device
+        
+        # Trinket: replace file operations with internal JS bridge
         map = self._pix_map[self._rotation]
-        # Two bytes per pixel in fb memory, 16 bit RGB565
-        #f.seek(map[y][x])  # row, column
-        #pix = f.read(1) # read the (R, G, B) tuple at the current position
         pix = self._fb_device.getpixel(map[y][x])
 
         return pix
@@ -382,12 +353,12 @@ class SenseHat(object):
         the image
         """
 
-        if not os.path.exists(file_path):
-            raise IOError('%s not found' % file_path)
+        #if not os.path.exists(file_path):
+        #    raise IOError('%s not found' % file_path)
 
-        img = Image.open(file_path).convert('RGB')
-        # ToDo: replace this with the Image module
-        pixel_list = list(map(list, img.getdata()))
+        # Trinket: Replaced Pillow with skulpt Image module
+        img = Image(file_path)
+        pixel_list = list(map(list, img.getData()))
 
         if redraw:
             self.set_pixels(pixel_list)
