@@ -1839,6 +1839,7 @@ print s.pressure
     <script>
         window.sense_hat = { }; // create sense_hat value placeholder
         var interrupt = false;
+        var lowlightLimit = 47;
         
         function interruptHandler() {
             if (interrupt === true) {
@@ -1859,11 +1860,17 @@ print s.pressure
                 var led = document.getElementById('e' + ledIndex);
                 
                 // ToDo: add check for low_light
-                if (ledData[0] > 47 || ledData[1] > 47 || ledData[2] > 47) {
+                if (ledData[0] > lowlightLimit || ledData[1] > lowlightLimit || ledData[2] > lowlightLimit) {
                     var colorVal = "rgb(" + ledData[0] + "," + ledData[1] + "," + ledData[2] + ")";
                     led.style.fill = colorVal;
                 } else {
                     led.style.fill = "#F6F6F6";
+                }
+            } else if (event && event === 'changeLowlight') {
+                if (data === true) {
+                    lowlightLimit = 8;
+                } else {
+                    lowlightLimit = 47;
                 }
             }
         }

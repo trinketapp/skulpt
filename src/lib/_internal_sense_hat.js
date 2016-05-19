@@ -20,13 +20,12 @@ var $builtinmodule = function (name) {
         }
         
         if (!Sk.sense_hat.low_light) {
-            // ToDo:
             Sk.sense_hat.low_light = false;
         }
         
         // gamma is stored as a 32 bit value (so should we store it as a number or array?)
         if (!Sk.sense_hat.gamma) {
-            Sk.sense_hat.gamma = []; // lookup table (@see https://pythonhosted.org/sense-hat/api/#gamma)
+            Sk.sense_hat.gamma = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // lookup table (@see https://pythonhosted.org/sense-hat/api/#gamma)
         }
         
         // Sensor stuff, all reads should never fail
@@ -113,7 +112,6 @@ var $builtinmodule = function (name) {
 
     mod.getGamma = new Sk.builtin.func(function () {
         var gamma = Sk.ffi.remapToPy(Sk.sense_hat.gamma);
-        
         return gamma;
     });
 
@@ -127,10 +125,13 @@ var $builtinmodule = function (name) {
         }
     });
 
-    mod.resetGamma = new Sk.builtin.func(function () {
-        // ToDo: figure out how what the base values are
+    mod.setLowlight = new Sk.builtin.func(function (value) {
+        var _value = Sk.ffi.remapToJs(value);
+        
+        Sk.sense_hat.low_light = _value;
+        
         if (Sk.sense_hat_emit) {
-            Sk.sense_hat_emit('resetGamma');
+            Sk.sense_hat_emit('changeLowlight', _value);
         }
     });
 

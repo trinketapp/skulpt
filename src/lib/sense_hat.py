@@ -475,7 +475,9 @@ class SenseHat(object):
 
     @property
     def gamma(self):
-        buffer = array.array('B', [0]*32) 
+        #buffer = array.array('B', [0]*32) 
+        # ToDo: Change this back to array.array
+        buffer = [0]*32
         self._fb_device.ioctl(SenseHat.SENSE_HAT_FB_FBIOGET_GAMMA, buffer)
         return list(buffer)
 
@@ -487,8 +489,9 @@ class SenseHat(object):
         if not all(b <= 31 for b in buffer):
             raise ValueError('Gamma values must be bewteen 0 and 31')
 
-        if not isinstance(buffer, array.array):
-            buffer = array.array('B', buffer)
+        # ToDo: trinket, array.array does not support len() right now
+        #if not isinstance(buffer, array.array):
+        #    buffer = array.array('B', buffer)
 
         #https://pythonhosted.org/sense-hat/api/#gamma
         self._fb_device.ioctl(SenseHat.SENSE_HAT_FB_FBIOSET_GAMMA, buffer)
