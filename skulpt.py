@@ -55,6 +55,7 @@ OUTFILE_REG     = "{0}.js".format(PRODUCT_NAME) if STANDARD_NAMING else "skulpt-
 OUTFILE_MIN     = "{0}.min.js".format(PRODUCT_NAME) if STANDARD_NAMING else "skulpt.js"
 OUTFILE_LIB     = "{0}-stdlib.js".format(PRODUCT_NAME) if STANDARD_NAMING else "builtin.js"
 OUTFILE_MAP     = "{0}-linemap.txt".format(PRODUCT_NAME) if STANDARD_NAMING else "linemap.txt"
+OUTFILE_DEBUGGER = "debugger.js"
 
 # Symbolic constants for file types.
 FILE_TYPE_DIST = 'dist'
@@ -118,6 +119,11 @@ Files = [
         ("support/jsbeautify/beautify.js", FILE_TYPE_TEST),
         ]
 
+ExtLibs = [
+        'support/time-helpers/strftime-min.js',
+        'support/time-helpers/strptime.min.js'
+]
+
 TestFiles = [
         'support/closure-library/closure/goog/base.js',
         'support/closure-library/closure/goog/deps.js',
@@ -150,8 +156,8 @@ def getTip():
     return repo.head.commit.hexsha
 
 
-def getFileList(type):
-    ret = []
+def getFileList(type, include_ext_libs=True):
+    ret = list(ExtLibs) if include_ext_libs else []
     for f in Files:
         if isinstance(f, tuple):
             if f[1] == type:
@@ -217,12 +223,14 @@ def test(debug_mode=False):
     ret4 = 0
     if ret1 == 0:
         print "Running jshint"
-        if sys.platform == "win32":
-            jshintcmd = "{0} {1}".format("jshint", ' '.join(f for f in glob.glob("src/*.js")))
-            jscscmd = "{0} {1} --reporter=inline".format("jscs", ' '.join(f for f in glob.glob("src/*.js")))
-        else:
-            jshintcmd = "jshint src/*.js"
-            jscscmd = "jscs src/*.js --reporter=inline"
+        base_dirs = ["src", "debugger"]
+        for base_dir in base_dirs:
+            if sys.platform == "win32":
+                jshintcmd = "{0} {1}".format("jshint", ' '.join(f for f in glob.glob(base_dir + "/*.js")))
+                jscscmd = "{0} {1} --reporter=inline".format("jscs", ' '.join(f for f in glob.glob(base_dir + "/*.js")))
+            else:
+                jshintcmd = "jshint " + base_dir + "/*.js"
+                jscscmd = "jscs " + base_dir + "/*.js --reporter=inline"
         ret2 = os.system(jshintcmd)
         print "Running JSCS"
         ret3 = os.system(jscscmd)
@@ -718,6 +726,7 @@ def dist(options):
     # Make the compressed distribution.
     compfn = os.path.join(DIST_DIR, OUTFILE_MIN)
     builtinfn = os.path.join(DIST_DIR, OUTFILE_LIB)
+    debuggerfn = os.path.join(DIST_DIR, OUTFILE_DEBUGGER)
     
     if options.disabletests == False:
         # Run tests on uncompressed.
@@ -730,12 +739,12 @@ def dist(options):
             sys.exit(1);
 
     # compress
-    uncompfiles = ' '.join(['--js ' + x for x in getFileList(FILE_TYPE_DIST)])
+    uncompfiles = ' '.join(['--js ' + x for x in getFileList(FILE_TYPE_DIST, include_ext_libs=False)])
 
     if options.verbose:
         print ". Compressing..."
 
-    ret = os.system("java -jar support/closure-compiler/compiler.jar --define goog.DEBUG=false --output_wrapper \"(function(){%%output%%}());\" --compilation_level SIMPLE_OPTIMIZATIONS --jscomp_error accessControls --jscomp_error checkRegExp --jscomp_error checkTypes --jscomp_error checkVars --jscomp_error deprecated --jscomp_off fileoverviewTags --jscomp_error invalidCasts --jscomp_error missingProperties --jscomp_error nonStandardJsDocs --jscomp_error strictModuleDepCheck --jscomp_error undefinedVars --jscomp_error unknownDefines --jscomp_error visibility %s --externs support/es6-promise-polyfill/externs.js --js_output_file %s" % (uncompfiles, compfn))
+    ret = os.system("java -jar support/closure-compiler/compiler.jar --define goog.DEBUG=false --output_wrapper \"(function(){%%output%%}());\" --compilation_level SIMPLE_OPTIMIZATIONS --jscomp_error accessControls --jscomp_error checkRegExp --jscomp_error checkTypes --jscomp_error checkVars --jscomp_error deprecated --jscomp_off fileoverviewTags --jscomp_error invalidCasts --jscomp_error missingProperties --jscomp_error nonStandardJsDocs --jscomp_error strictModuleDepCheck --jscomp_error undefinedVars --jscomp_error unknownDefines --jscomp_error visibility %s --externs support/es6-promise-polyfill/externs.js --js_output_file tmp.js" % (uncompfiles))
     # to disable asserts
     # --define goog.DEBUG=false
     #
@@ -748,8 +757,24 @@ def dist(options):
         print "closure-compiler failed."
         sys.exit(1)
 
+    # Copy the debugger file to the output dir
+
+    if options.verbose:
+        print ". Bundling external libraries..."
+
+    bundle = ""
+    for fn in ExtLibs + ["tmp.js"]:
+        with open(fn, "r") as f:
+            bundle += f.read()
+
+    with open(compfn, "w") as f:
+        f.write(bundle)
+
+    print ". Wrote bundled file"
+
+
+    # Run tests on compressed.
     if options.disabletests == False:
-        # Run tests on compressed.
         if options.verbose:
             print ". Running tests on compressed..."
         buildNamedTestsFile()
@@ -762,12 +787,14 @@ def dist(options):
             print "Tests failed on compressed unit tests"
             sys.exit(1)
 
+
     doc()
 
     try:
         shutil.copy(compfn, os.path.join(DIST_DIR, "tmp.js"))
-    except:
-        print "Couldn't copy for gzip test."
+        shutil.copy("debugger/debugger.js", DIST_DIR)
+    except Exception as e:
+        print "Couldn't copy debugger to output folder: %s" % e.message
         sys.exit(1)
 
     path_list = os.environ.get('PATH','').split(':')
@@ -799,6 +826,7 @@ def dist(options):
     try:
         shutil.copy(compfn,    os.path.join("doc", "static", OUTFILE_MIN))
         shutil.copy(builtinfn, os.path.join("doc", "static", OUTFILE_LIB))
+        shutil.copy(debuggerfn, os.path.join("doc", "static", "debugger", OUTFILE_DEBUGGER))
     except:
         print "Couldn't copy to docs dir."
         sys.exit(1)
@@ -1049,8 +1077,12 @@ var input = read('%s');
 print('%s');
 Sk.configure({syspath:["%s"], read:read, python3:%s});
 Sk.misceval.asyncToPromise(function() {
-    Sk.importMain("%s", false, true);
-}).then(quit, function(e) { throw e; });
+    return Sk.importMain("%s", false, true);
+}).then(function () {}, function(e) {
+    print("UNCAUGHT EXCEPTION: " + e);
+    print(e.stack);
+    quit(1);
+});
         """ % (fn, fn, os.path.split(fn)[0], p3on, modname))
         f.close()
         if opt:
