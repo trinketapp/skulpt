@@ -1,6 +1,16 @@
 <html>
   <head>
-    <title>Sense Hat Example</title>
+    <title>Sense Hat Sensors Example</title>
+
+    <!-- Required meta tags always come first -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+    <link rel="stylesheet" href="./sense_hat_sensors.css"/>
+    
     <script src="../dist/skulpt.min.js" type="text/javascript"></script>
     <script src="../dist/skulpt-stdlib.js" type="text/javascript"></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"> </script>
@@ -9,30 +19,38 @@
         #editor {
             height: 400px;
         }
+        
+        #output {
+            overflow-y: scroll;
+        }
     </style>
   </head>
 
   <body>
-    <div id="mycanvas" height="500" width="800"
-	style="border-style: solid;"></div>
+      <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="m-t-1 m-b-1" id="editor"># official demo program
+from sense_hat import SenseHat
+sense = SenseHat()
 
-<div id="editor">import sense_hat
+while True:
+    t = sense.get_temperature()
+    p = sense.get_pressure()
+    h = sense.get_humidity()
 
-s = sense_hat.SenseHat()
+    t = round(t, 1)
+    p = round(p, 1)
+    h = round(h, 1)
 
-s.set_pixel(0, 0, (1, 1, 1))
+    msg = "Temperature = %s, Pressure=%s, Humidity=%s" % (t,p,h)
 
-print s.temperature
-
-print s.humidity
-
-print s.pressure
-
-</div>
-<button id="runbtn">Run</button><button id="stopbtn">Stop</button>
-<textarea id="output" rows="24" cols="80"></textarea>
+    sense.show_message(msg, scroll_speed=0.05)</div>
+                <button class="btn btn-success btn-sm m-r-1" id="runbtn">Run</button><button class="btn btn-danger btn-sm" id="stopbtn">Stop</button>
+            </div>
+            <div class="col-md-6">
 <div id="sense_hat_wrapper">
-    <svg width="500" height="500" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500;" xml:space="preserve">
+    <svg width="250" height="250" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500;" xml:space="preserve">
         <path style="fill:#309A5D;stroke:#004537;stroke-width:2.1959;stroke-miterlimit:10;" d="M456.393,120.692l-0.437,243.598
             c-0.028,15.418-12.665,28.011-28.084,27.983l-376.081-0.675c-15.418-0.028-28.011-12.665-27.983-28.084l0.437-243.598
             c0.028-15.418,12.665-28.011,28.084-27.983l376.081,0.675C443.828,92.636,456.42,105.274,456.393,120.692z M59.163,112.481
@@ -1841,91 +1859,68 @@ print s.pressure
             L253.044,364.054z"></path>
         </svg>
 </div>
+        <textarea id="output" rows="10" cols="40"></textarea>
+        </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="device-temperature-overide">Temperature:</label>
+                    <input type="range" class="form-control form-control-sm" id="device-temperature-overide" min="-40" value="25" max="120" step="0.01">
+                    <p class="text-muted">Sensor Range: -40°C to +120°C ((Temperature accurate to +/- 2 degC in the 0-65 degC range))</p>
+                </div>
+                <div class="form-group">
+                    <label for="device-humidity-overide">Humidity:</label>
+                    <input type="range" class="form-control form-control-sm" id="device-humidity-overide" min="0" value="45" max="110" step="0.01">
+                    <p class="text-muted">Relative Humidity Range: 0% to 100+% (<small>Note: The humidity may be over 100%</small>)</p>
+                </div>
+                <div class="form-group">
+                    <label for="device-pressure-overide">Pressure:</label>
+                    <input type="range" class="form-control form-control-sm" id="device-pressure-overide" min="260" value="1160" max="1260" step="0.1">
+                    <p class="text-muted">Barometer: 260 – 1260 hPa absolute range (accuracy depends on the temperature and pressure, +/- 0.1 hPa under normal conditions)</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 accelerometer-inputs-cell">
+                <div>
+                    <fieldset class="form-group">
+                        <label for="device-orientation-override-alpha">	&alpha;</label>
+                        <input type="text" class="form-control form-control-sm" id="device-orientation-override-alpha" placeholder="0">
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <label for="device-orientation-override-beta">&beta;</label>
+                        <input type="text" class="form-control form-control-sm" id="device-orientation-override-beta" placeholder="0">
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <label for="device-orientation-override-gamma">&gamma;</label>
+                        <input type="text" class="form-control form-control-sm" id="device-orientation-override-gamma" placeholder="0">
+                    </fieldset>
+                    <button class="btn btn-secondary btn-sm" id="device-orientation-reset-button">Reset</button>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="accelerometer-stage">
+                    <section class="accelerometer-box">
+                        <section class="front">front</section>
+                        <section class="top">top</section>
+                        <section class="back">back</section>
+                        <section class="left">left</section>
+                        <section class="right">right</section>
+                        <section class="bottom">bottom</section>
+                    </section>
+                </div>
+            </div>
+        </div
+        <div class="row">
+            <div id="mycanvas" height="500" width="800"	style="border-style: solid;"></div>
+        </div>
+      </div>
+
+    <!-- jQuery first, then Bootstrap JS. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js" integrity="sha384-vZ2WRJMwsjRMW/8U7i6PWi6AlO1L79snBrmgiDpgIWJ82z8eA5lenwvxbMV1PAh7" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" type="text/javascript" charset="utf-8"></script>
-    <script>
-        // create ace editor
-        var editor = ace.edit("editor");
-        editor.setTheme("ace/theme/monokai");
-        editor.getSession().setMode("ace/mode/python");
-        
-        window.sense_hat = { }; // create sense_hat value placeholder
-        var interrupt = false;
-        var lowlightLimit = 47;
-        
-        function interruptHandler() {
-            if (interrupt === true) {
-                throw new Error('Stopped the hard way!');
-            } else {
-                return null;
-            }
-        }
-        
-        function emit(event, data) {
-            //console.info(event, data);
-            
-            if (event && event === 'setpixel') {
-                // change the led
-                var ledIndex = data;
-                var ledData = window.sense_hat.pixels[ledIndex];
-                
-                var led = document.getElementById('e' + ledIndex);
-                
-                if (ledData[0] > lowlightLimit || ledData[1] > lowlightLimit || ledData[2] > lowlightLimit) {
-                    var colorVal = "rgb(" + ledData[0] + "," + ledData[1] + "," + ledData[2] + ")";
-                    led.style.fill = colorVal;
-                } else {
-                    led.style.fill = "#F6F6F6";
-                }
-            } else if (event && event === 'changeLowlight') {
-                if (data === true) {
-                    lowlightLimit = 8;
-                } else {
-                    lowlightLimit = 47;
-                }
-            } else if (event && event === 'init') {
-                for (var i = 0; i < 64; i++) {
-                    var ledData = window.sense_hat.pixels[i];
-                    var led = document.getElementById('e' + i);
-                    led.style.fill = "#F6F6F6";
-                    window.sense_hat.pixels[i] = [0, 0, 0]; // reset
-                }
-            }
-        }
-        
-        var runbtn = document.getElementById('runbtn');
-        var stopbtn = document.getElementById('stopbtn');
-        var output = document.getElementById('output');
-        
-        stopbtn.addEventListener('click', function (e) {
-            interrupt = true;
-        });
-        
-        runbtn.addEventListener('click', function (e) {
-            interrupt = false; // reset
-           
-            function builtinRead(x) {
-                if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)
-                    throw "File not found: '" + x + "'";
-                return Sk.builtinFiles["files"][x];
-            }
-            (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = 'mycanvas';
-
-            Sk.configure({ 
-                read: builtinRead,
-                output: function (val) {
-                    var newText = output.value + val + '\n';
-                    output.value = newText;
-                } 
-            });
-           
-           Sk.imageProxy = '';
-           Sk.sense_hat = window.sense_hat,
-           Sk.sense_hat_emit = emit,
-
-            Sk.misceval.asyncToPromise(function() {
-                return Sk.importMainWithBody("<stdin>", false, editor.getValue(), true);
-            }, {'*': interruptHandler});
-        });
-    </script>
+    <script src="./sense_hat_sensors.js"></script>
   </body>
 </html>

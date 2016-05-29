@@ -38,10 +38,10 @@ var $builtinmodule = function (name) {
                 pressure: [1, 0], /* isValid, pressure*/
                 temperature: [1, 0], /* isValid, temperature */
                 humidity: [1, 0], /* isValid, humidity */
-                gyro: [0, 0, 0],
-                accel: [0, 0, 0],
-                compass: [0, 0, 0],
-                fusionPose: [0, 0, 0]
+                gyro: [0, 0, 0], /* all 3 gyro values */
+                accel: [0, 0, 0], /* all 3 accel values */
+                compass: [0, 0, 0], /* all compass values */
+                fusionPose: [0, 0, 0] /* fusionpose, accelerometer */
             }
         }
         
@@ -155,11 +155,44 @@ var $builtinmodule = function (name) {
         
         return data;
     });
-
+    
+    /**
+     * Temperature Range: -40 to +120 degrees celsius
+     */
     mod.temperatureRead = new Sk.builtin.func(function () {
-        var temperature = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.temperature);
+        var temperature;
+        //var jsTemperature = Sk.sense_hat.rtimu.temperature;
+        //if (jsTemperature[1] < -40 || jsTemperature[1] > 120) {
+        //    temperature = Sk.ffi.remapToPy([0, jsTemperature[1]]); // invalid
+        //} else {
+            temperature = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.temperature);
+        //}
         
         return temperature;
+    });
+    
+    mod.fusionPoseRead = new Sk.builtin.func(function () {
+        var fusionPose = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.fusionPose);
+        
+        return fusionPose;
+    });
+
+    mod.accelRead = new Sk.builtin.func(function () {
+        var accel = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.accel);
+        
+        return accel;
+    });
+
+    mod.compassRead = new Sk.builtin.func(function () {
+        var compass = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.compass);
+        
+        return compass;
+    });
+
+    mod.gyroRead = new Sk.builtin.func(function () {
+        var gyro = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.gyro);
+        
+        return gyro;
     });
 
     return mod;

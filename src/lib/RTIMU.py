@@ -1,4 +1,5 @@
 import _internal_sense_hat as _ish
+import time
 
 class RTIMU:
   """
@@ -8,7 +9,7 @@ class RTIMU:
     self._imu_settings = imu_settings
     self._compass_enabled = True
     self._gyro_enabled = False
-    self._accel_enabled = False
+    self._accel_enabled = True
   
   def IMUInit(self):
     """
@@ -84,23 +85,30 @@ class RTIMU:
       https://github.com/richards-tech/RTIMULib2/blob/master/Linux/python/PyRTIMU_RTIMU.cpp#L189
     """
     return {
-      "timestamp": 1232342,
-      "fusionPoseValid": True,
-      "fusionPose": (1, 2, 3),
-      "fusionQPoseValid": True,
-      "gyroValid": False,
-      "gyro": (1, 2, 3),
-      "accelValid": False,
-      "accel": (1, 2, 3),
-      "compassValid": False,
-      "compass": (1, 2, 3),
-      "pressureValid": True,
-      "pressure": 3.4,
-      "temperatureValid": True,
-      "temperature": 23.5,
-      "humidityValid": True,
-      "humidity": 45.5
-      }
+        "timestamp": time.time(),
+        "fusionPoseValid": True,
+        "fusionPose": self._getFusionPose(),
+        "fusionQPoseValid": True,
+        "gyroValid": False,
+        "gyro": _ish.gyroRead(),
+        "accelValid": True,
+        "accel": _ish.accelRead(),
+        "compassValid": False,
+        "compass": _ish.compassRead(),
+        "pressureValid": True,
+        "pressure": _ish.pressureRead(),
+        "temperatureValid": True,
+        "temperature": _ish.temperatureRead(),
+        "humidityValid": True,
+        "humidity": _ish.humidityRead()
+        }
+  
+  def _getFusionPose(self):
+      if self._accel_enabled == False and self._gyro_enabled == False:
+          # ToDo: special compass only handling for yaw data
+          return _ish.fusionPoseRead()
+          
+      return _ish.fusionPoseRead()
 
 class RTPressure:
   def __init__(self, imu_settings):

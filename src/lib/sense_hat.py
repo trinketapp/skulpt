@@ -696,7 +696,8 @@ class SenseHat(object):
         Returns a dictionary object to represent the current orientation in
         radians using the aircraft principal axes of pitch, roll and yaw
         """
-
+        # orientaiton radians
+        # yaw: alpha, pitch: gamma, roll: beta
         raw = self._get_raw_data('fusionPoseValid', 'fusionPose')
 
         if raw is not None:
