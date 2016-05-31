@@ -8,6 +8,24 @@
 var $builtinmodule = function (name) {
     var mod = {};
     
+    function checkNumberAndReturn(val) {
+        var parsed = parseFloat(val);
+        // only numbers/floats are okay
+        var isValid = !isNaN(parsed) && isFinite(val);
+        if (isValid) {
+            return {
+                value: parsed,
+                valid: true
+            }
+        }
+
+        // invalid number, return -1
+        return {
+            value: -1,
+            valid: false
+        }
+    }
+
     mod.init = new Sk.builtin.func(function () {
         // check if the pixels array does already exist and or create it
         if(!Sk.sense_hat) {
@@ -140,35 +158,93 @@ var $builtinmodule = function (name) {
     });
 
     // RTIMU stuff
+
+    /**
+     * 260 - 1260 hPa
+     */
     mod.pressureRead = new Sk.builtin.func(function () {
-        var dataArray = [].concat(Sk.sense_hat.rtimu.pressure, Sk.sense_hat.rtimu.temperature);
-        var _dataArray = Sk.ffi.remapToPy(dataArray);
-        var data = new Sk.builtin.tuple(_dataArray);
+        var pyTemperature = Sk.misceval.callsim(mod.temperatureRead); // does the validation for us
+        var jsTemperature = Sk.ffi.remapToJs(pyTemperature);
+
+        var jsPressure; // object holding the parsed value
+
+        if (!Sk.sense_hat.rtimu.pressure || Sk.sense_hat.rtimu.pressure.length !== 2) {
+            // something was set wrong
+            return Sk.ffi.remapToPy([].concat([0, -1], jsTemperature));
+        }
+
+        // check type of the temperature
+        jsPressure = checkNumberAndReturn(Sk.sense_hat.rtimu.pressure[1]);
+
+        // invalid value provided
+        if (jsPressure.valid === false) {
+            return Sk.ffi.remapToPy([].concat([0, -1], jsTemperature));
+        }
+
+        // now do some range checks
+        if (jsPressure.value < 260 || jsPressure.value > 1260) {
+            return Sk.ffi.remapToPy([].concat([0, jsPressure.value], jsTemperature));
+        }
         
-        return data;
+        return Sk.ffi.remapToPy([].concat([1, jsPressure.value], jsTemperature));
     });
     
+    /**
+     * >= 0%
+     */
     mod.humidityRead = new Sk.builtin.func(function () {
-        var dataArray = [].concat(Sk.sense_hat.rtimu.humidity, Sk.sense_hat.rtimu.temperature);
-        var _dataArray = Sk.ffi.remapToPy(dataArray);
-        var data = new Sk.builtin.tuple(_dataArray);
+        var pyTemperature = Sk.misceval.callsim(mod.temperatureRead); // does the validation for us
+        var jsTemperature = Sk.ffi.remapToJs(pyTemperature);
+
+        var jsHumidity;
+
+        if (!Sk.sense_hat.rtimu.humidity || Sk.sense_hat.rtimu.humidity.length !== 2) {
+            // something was set wrong
+            return Sk.ffi.remapToPy([].concat([0, -1], jsTemperature));
+        }
+
+        // check type of the temperature
+        jsHumidity = checkNumberAndReturn(Sk.sense_hat.rtimu.humidity[1]);
+
+        // invalid value provided
+        if (jsHumidity.valid === false) {
+            return Sk.ffi.remapToPy([].concat([0, -1], jsTemperature));
+        }
+
+        // now do some range checks
+        if (jsHumidity.value < 0) {
+            return Sk.ffi.remapToPy([].concat([0, jsHumidity.value], jsTemperature));
+        }
         
-        return data;
+        return Sk.ffi.remapToPy([].concat([1, jsHumidity.value], jsTemperature));
     });
     
     /**
      * Temperature Range: -40 to +120 degrees celsius
      */
     mod.temperatureRead = new Sk.builtin.func(function () {
-        var temperature;
-        //var jsTemperature = Sk.sense_hat.rtimu.temperature;
-        //if (jsTemperature[1] < -40 || jsTemperature[1] > 120) {
-        //    temperature = Sk.ffi.remapToPy([0, jsTemperature[1]]); // invalid
-        //} else {
-            temperature = Sk.ffi.remapToPy(Sk.sense_hat.rtimu.temperature);
-        //}
+        var jsTemperature;
+
+        if (!Sk.sense_hat.rtimu.temperature || Sk.sense_hat.rtimu.temperature.length !== 2) {
+            // something was set wrong
+            return Sk.ffi.remapToPy([0, -1]);
+        }
+
+        // check type of the temperature
+        var jsTemperature = checkNumberAndReturn(Sk.sense_hat.rtimu.temperature[1]);
+
+        // invalid value provided
+        if (jsTemperature.valid === false) {
+            return Sk.ffi.remapToPy([0, -1]);
+        }
+
+        // now do some range checks
+        if (jsTemperature.value < -40 || jsTemperature.value > 120) {
+            return Sk.ffi.remapToPy([0, jsTemperature.value]); // invalid
+        }
         
-        return temperature;
+        // return Python Array containing [isValid, temperature]
+        return Sk.ffi.remapToPy([1, jsTemperature.value]);
     });
     
     mod.fusionPoseRead = new Sk.builtin.func(function () {
