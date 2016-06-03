@@ -12,7 +12,8 @@ function onLoad(event) {
             accel: [0, 0, 0],
             compass: [0, 0, 0],
             fusionPose: [0, 0, 0] /* fusionpose, accelerometer */
-        }
+        },
+        sensestick: {}
     }; // create sense_hat value placeholder
     
     /**
@@ -53,7 +54,6 @@ function onLoad(event) {
            Sk.sense_hat.rtimu.temperature = [0, -1];
        }
     });
-
 
     /****************************************************************
      * Here starts the skulpt specific stuff, e.g. run/stop btns input, output...
@@ -107,6 +107,7 @@ function onLoad(event) {
     }
     
     var runbtn = document.getElementById('runbtn');
+    
     var stopbtn = document.getElementById('stopbtn');
     var output = document.getElementById('output');
     
@@ -403,7 +404,10 @@ DeviceOrientationInput.prototype._dragHandle = function() {
             if (this._dragPane) {
                 // register events
                 this._dragPane.addEventListener('mousemove', mouseMoveHandler.bind(this));    
+                this._dragPane.addEventListener('touchmove', mouseMoveHandler.bind(this));  
+
                 this._dragPane.addEventListener('mouseup', mouseUpHandler.bind(this));
+                this._dragPane.addEventListener('touchend', mouseUpHandler.bind(this));
             }   
         }
     }
@@ -414,15 +418,26 @@ DeviceOrientationInput.prototype._dragHandle = function() {
         this._dragPane.id = "drag-pane";
         document.body.appendChild(this._dragPane);
         
-        this._dragPane.addEventListener('mouseout', function (event) {
+        function handlePaneOut(event) {
             mouseUpHandler.apply(this, event);
-        }.bind(this));
+        }
+
+        this._dragPane.addEventListener('mouseout', handlePaneOut.bind(this));
+        this._dragPane.addEventListener('touchcancel', handlePaneOut.bind(this));
     }
     
     this._stageElement.addEventListener('mousedown', mouseDownHandler.bind(this));    
+    this._stageElement.addEventListener('touchstart', mouseDownHandler.bind(this));    
+
     this._stageElement.addEventListener('mousemove', mouseMoveHandler.bind(this));    
+    this._stageElement.addEventListener('touchmove', mouseMoveHandler.bind(this));   
+
     this._stageElement.addEventListener('mouseup', mouseUpHandler.bind(this));
+    this._stageElement.addEventListener('touchend', mouseUpHandler.bind(this));
+
+    
     this._stageElement.addEventListener('mouseout', mouseOutHandler.bind(this));
+    this._stageElement.addEventListener('touchcancel', mouseOutHandler.bind(this));
 }
 
 /**
