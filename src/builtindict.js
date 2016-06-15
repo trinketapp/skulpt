@@ -55,6 +55,7 @@ Sk.builtins = {
     "OperationError"     : Sk.builtin.OperationError,
     "RuntimeError"       : Sk.builtin.RuntimeError,
     "StopIteration"      : Sk.builtin.StopIteration,
+    "KeyboardInterrupt"  : Sk.builtin.KeyboardInterrupt,
 
     "dict"      : Sk.builtin.dict,
     "file"      : Sk.builtin.file,

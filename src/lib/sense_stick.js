@@ -89,7 +89,7 @@ var $builtinmodule = function (name) {
                 // Should the post image get stuff go here??
                 if (susp.data["error"]) {
                     if (susp.data.error === 'KeyboardInterrupt') {
-                        throw new Error('KeyboardInterrupt');
+                        throw new Sk.builtin.KeyboardInterrupt('KeyboardInterrupt');
                     } else {
                         throw new Sk.builtin.IOError('SenseStickDevice Error');
                     }
@@ -146,7 +146,7 @@ var $builtinmodule = function (name) {
                 // Should the post image get stuff go here??
                 if (susp.data["error"]) {
                     if (susp.data.error === 'KeyboardInterrupt') {
-                        throw new Error('KeyboardInterrupt');
+                        throw new Sk.builtin.KeyboardInterrupt('KeyboardInterrupt');
                     } else {
                         throw new Sk.builtin.IOError('SenseStickDevice Error');
                     }
