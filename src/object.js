@@ -52,6 +52,20 @@ Sk.builtin.object.prototype.GenericGetAttr = function (name) {
         //return f.call(descr, this, this.ob$type);
     }
 
+    descr = Sk.builtin.type.typeLookup(tp, name);
+
+    // otherwise, look in the type for a descr
+    if (descr !== undefined && descr !== null && descr.ob$type !== undefined) {
+        f = descr.ob$type.tp$descr_get;
+        if (!(f) && descr["__get__"]) {
+            f = descr["__get__"];
+            return Sk.misceval.callsimOrSuspend(f, descr, this);
+        }
+        // todo;
+        //if (f && descr.tp$descr_set) // is a data descriptor if it has a set
+        //return f.call(descr, this, this.ob$type);
+    }
+
     // todo; assert? force?
     if (dict) {
         if (dict.mp$lookup) {
@@ -126,8 +140,6 @@ Sk.builtin.object.prototype.GenericSetAttr = function (name, value) {
         //if (f && descr.tp$descr_set) // is a data descriptor if it has a set
         //return f.call(descr, this, this.ob$type);
     }
-
-    // todo; lots o' stuff
 
     dict = this["$d"] || this.constructor["$d"];
 

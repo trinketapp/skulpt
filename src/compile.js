@@ -1693,7 +1693,9 @@ Compiler.prototype.buildcodeobj = function (n, coname, decorator_list, args, cal
         var res;
         if (decos.length > 0)
         {
-            res = this._gr("funcobj", "Sk.misceval.callsim(", scopename, ".$decorators[0], new Sk.builtins['function'](", scopename, ",$gbl", frees, "))"); // scopename, ".$decorators[0](new Sk.builtins['function'](", scopename, ",$gbl", frees, "))";
+            out("$ret = Sk.misceval.callsimOrSuspend(", scopename, ".$decorators[0], new Sk.builtins['function'](", scopename, ",$gbl", frees, "));");
+            this._checkSuspension();
+            return this._gr("funcobj", "$ret");
         } else {
             res = this._gr("funcobj", "new Sk.builtins['function'](", scopename, ",$gbl", frees, ")");
         }
