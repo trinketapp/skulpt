@@ -726,7 +726,8 @@ class SenseHat(object):
         while not success and attempts < 3:
             success = self._imu.IMURead()
             attempts += 1
-            time.sleep(self._imu_poll_interval)
+            # ToDo: This breaks suspensions
+            #time.sleep(self._imu_poll_interval)
 
         return success
 
