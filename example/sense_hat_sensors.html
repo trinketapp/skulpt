@@ -30,22 +30,71 @@
       <div class="container">
         <div class="row">
             <div class="col-md-6">
-                <div class="m-t-1 m-b-1" id="editor"># official demo program
-from sense_hat import SenseHat
+                <div class="m-t-1 m-b-1" id="editor">from sense_hat import SenseHat
+from time import sleep
+
 sense = SenseHat()
+sense.clear()
 
-while True:
-    t = sense.get_temperature()
-    p = sense.get_pressure()
-    h = sense.get_humidity()
+r = (255,0,0)
+g = (0,255,0)
+b = (0,0,0)
+w = (255,255,255)
 
-    t = round(t, 1)
-    p = round(p, 1)
-    h = round(h, 1)
+x = 1
+y = 1
 
-    msg = "Temperature = %s, Pressure=%s, Humidity=%s" % (t,p,h)
+maze = [[r,r,r,r,r,r,r,r],
+        [r,b,b,b,b,b,b,r],
+        [r,r,r,b,r,b,b,r],
+        [r,b,r,b,r,r,r,r],
+        [r,b,b,b,b,b,b,r],
+        [r,b,r,r,r,r,b,r],
+        [r,b,b,r,g,b,b,r],
+        [r,r,r,r,r,r,r,r]]
 
-    sense.show_message(msg, scroll_speed=0.05)</div>
+def move_marble(pitch,roll,x,y):
+    new_x = x
+    new_y = y
+    print pitch, roll, x, y
+    if 1 < pitch < 179 and x != 0:
+        new_x -= 1
+    elif 359 > pitch > 179 and x != 7 :
+        new_x += 1
+    if 1 < roll < 179 and y != 7:
+        new_y += 1
+    elif 359 > roll > 179 and y != 0 :
+        new_y -= 1
+    x,y = check_wall(x,y,new_x,new_y)
+    return x,y
+
+def check_wall(x,y,new_x,new_y):
+    if maze[new_y][new_x] != r:
+        return new_x, new_y
+    elif maze[new_y][x] != r:
+        return x, new_y
+    elif maze[y][new_x] != r:
+        return new_x, y
+    return x,y
+
+game_over = False
+
+def check_win(x,y):
+    global game_over
+    if maze[y][x] == g:
+        game_over = True
+        sense.show_message('You Win')
+
+while not game_over:
+    pitch = sense.get_orientation()['pitch']
+    roll = sense.get_orientation()['roll']
+    x,y = move_marble(pitch,roll,x,y)
+    check_win(x,y)
+    maze[y][x] = w
+    l = sum(maze,[])
+    sense.set_pixels(l)
+    sleep(2)
+    maze[y][x] = b</div>
                 <button class="btn btn-success btn-sm m-r-1" id="runbtn">Run</button><button class="btn btn-danger btn-sm" id="stopbtn">Stop</button>
             </div>
             <div class="col-md-6">
@@ -1886,29 +1935,34 @@ while True:
                 <div>
                     <fieldset class="form-group">
                         <label for="device-orientation-override-alpha">	&alpha;</label>
-                        <input type="text" class="form-control form-control-sm" id="device-orientation-override-alpha" placeholder="0">
+                        <!--<input type="text" class="form-control form-control-sm" id="device-orientation-override-alpha" placeholder="0"> -->
+                        <input type="range" class="form-control form-control-sm" id="device-orientation-override-alpha" min="-360" max="360" step="5">
                     </fieldset>
                     <fieldset class="form-group">
                         <label for="device-orientation-override-beta">&beta;</label>
-                        <input type="text" class="form-control form-control-sm" id="device-orientation-override-beta" placeholder="0">
+                        <!--<input type="text" class="form-control form-control-sm" id="device-orientation-override-beta" placeholder="0">-->
+                        <input type="range" class="form-control form-control-sm" id="device-orientation-override-beta" min="-360" max="360" step="5">
                     </fieldset>
                     <fieldset class="form-group">
                         <label for="device-orientation-override-gamma">&gamma;</label>
-                        <input type="text" class="form-control form-control-sm" id="device-orientation-override-gamma" placeholder="0">
+                        <!--<input type="text" class="form-control form-control-sm" id="device-orientation-override-gamma" placeholder="0">-->
+                        <input type="range" class="form-control form-control-sm" id="device-orientation-override-gamma" min="-360" max="360" step="5">
                     </fieldset>
                     <button class="btn btn-secondary btn-sm" id="device-orientation-reset-button">Reset</button>
                 </div>
             </div>
             <div class="col-md-8">
-                <div class="accelerometer-stage">
-                    <section class="accelerometer-box">
-                        <section class="front">front</section>
-                        <section class="top">top</section>
-                        <section class="back">back</section>
-                        <section class="left">left</section>
-                        <section class="right">right</section>
-                        <section class="bottom">bottom</section>
-                    </section>
+                <div class="orientation-stage">
+                    <div class="orientation-layer">
+                        <section class="orientation-box orientation-element">
+                            <section class="orientation-front orientation-element"></section>
+                            <section class="orientation-top orientation-element"></section>
+                            <section class="orientation-back orientation-element"></section>
+                            <section class="orientation-left orientation-element"></section>
+                            <section class="orientation-right orientation-element"></section>
+                            <section class="orientation-bottom orientation-element"></section>
+                        </section>
+                    </div>
                 </div>
             </div>
         </div

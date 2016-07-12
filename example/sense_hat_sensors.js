@@ -20,10 +20,11 @@ function onLoad(event) {
      * Handle device orientation changes (actually we should compute the orientation from compass and accelerometer)
      */
     function deviceOrientationChange(deviceOrientation) {
+        var deOr = deviceOrientation.toRadians();
         window.sense_hat.rtimu.fusionPose = [
-            deviceOrientation.beta,
-            deviceOrientation.gamma,
-            deviceOrientation.alpha
+            deOr.beta,
+            deOr.gamma,
+            deOr.alpha
         ];
     }
     
@@ -144,18 +145,20 @@ function onLoad(event) {
 }
 
 function initDeviceOrientationInput(cb) {
-    var stageElement = document.querySelector('.accelerometer-stage');
-    var boxElement = document.querySelector('.accelerometer-box');
+    var stageElement = document.querySelector('.orientation-stage');
+    var orientationLayer = document.querySelector('.orientation-layer');
+    var boxElement = document.querySelector('.orientation-box');
     var resetButton = document.getElementById('device-orientation-reset-button');
     var alphaInput = document.getElementById('device-orientation-override-alpha');
     var betaInput = document.getElementById('device-orientation-override-beta');
     var gammaInput = document.getElementById('device-orientation-override-gamma');
     
-    var di = new DeviceOrientation(0, 0, 0);
+    var di = new DeviceOrientation(90, 0, -90);
     
     var elements = {
         stageElement: stageElement,
         boxElement: boxElement,
+        orientationLayer: orientationLayer,
         alphaInput: alphaInput,
         betaInput: betaInput,
         gammaInput: gammaInput,
@@ -228,6 +231,10 @@ Geometry.calculateAngle = function(u, v) {
     return Geometry.radToDeg(Math.acos(cos));
 }
 
+Geometry.degToRad =  function(deg) {
+    return deg * Math.PI / 180;
+}
+
 Geometry.radToDeg = function(rad) {
     return rad * 180 / Math.PI;
 }
@@ -259,10 +266,35 @@ Geometry.EulerAngles.fromRotationMatrix = function(rotationMatrix) {
     return new Geometry.EulerAngles(Geometry.radToDeg(alpha), Geometry.radToDeg(beta), Geometry.radToDeg(gamma));
 }
 
+
+/**
+ * Creates a rotate3d css string based on the euler angles for the css "transform". 
+ * 
+ * @returns
+ */
+Geometry.EulerAngles.prototype.toRotate3DString = function () {
+    var gammaAxisY = -Math.sin(Geometry.degToRad(this.beta));
+    var gammaAxisZ = Math.cos(Geometry.degToRad(this.beta));
+    var axis = {
+        alpha: [0, 1, 0],
+        beta: [-1, 0, 0],
+        gamma: [0, gammaAxisY, gammaAxisZ]
+    };
+    return "rotate3d(" + axis.alpha.join(",") + "," + this.alpha + "deg) " + "rotate3d(" + axis.beta.join(",") + "," + this.beta + "deg) " + "rotate3d(" + axis.gamma.join(",") + "," + this.gamma + "deg)";
+}
+
 function DeviceOrientation(alpha, beta, gamma) {
     this.alpha = alpha;
     this.beta = beta;
     this.gamma = gamma;
+}
+
+DeviceOrientation.prototype.toRadians = function() {
+    return {
+        alpha: Geometry.degToRad(this.alpha),
+        beta: Geometry.degToRad(this.beta),
+        gamma: Geometry.degToRad(this.gamma)
+    }
 }
 
 /**
@@ -299,6 +331,7 @@ DeviceOrientation.parseUserInput = function (alphaString, betaString, gammaStrin
  */
 function DeviceOrientationInput(elements, options) {
     this._stageElement = elements.stageElement;
+    this._orientationLayer = elements.orientationLayer;
     this._boxElement =  elements.boxElement;
     this._alphaElement =  elements.alphaInput;
     this._betaElement =  elements.betaInput;
@@ -314,7 +347,7 @@ function DeviceOrientationInput(elements, options) {
     if (options && options.deviceOrientation && options.deviceOrientation instanceof DeviceOrientation) {
         deviceOrientation = options.deviceOrientation;
     } else {
-        deviceOrientation = new DeviceOrientation(0, 0, 0);
+        deviceOrientation = new DeviceOrientation(0, 90, 0);
     }
     
     this.options = options;
@@ -343,7 +376,6 @@ DeviceOrientationInput.getEventY = function(event) {
 }
 
 DeviceOrientationInput.prototype.bindToEvents = function() {
-    //Drag.installDragHandle(this._stageElement, this._onBoxDragStart.bind(this), this._onBoxDrag.bind(this), this._onBoxDragEnd.bind(this), "move");
     this._dragHandle();
     this._resetButton.addEventListener('click', this._resetDeviceOrientation.bind(this));
     
@@ -364,80 +396,83 @@ DeviceOrientationInput.prototype._dragHandle = function() {
             
         // can this happen?
         if (this._isDragging === true) {
+            console.info('mousedown while isDragging is true');
             return;
         }
-        
+
         if (this._dragPane) {
+            if (this._dragPane.parentNode)
+                this._dragPane.parentNode.removeChild(this._dragPane);
+            
             this._dragPane.remove();
+            delete this._dragPane;
         }
         
         this._isDragging = true
         this._onBoxDragStart(event);
+
+        // create pane and register to events
+        createDragPane.apply(this);
+        console.info('dragpane created');
+        
+        if (this._dragPane != null) {
+            // register events
+            this._dragPane.addEventListener('mousemove', mouseMoveHandler.bind(this));    
+            this._dragPane.addEventListener('touchmove', mouseMoveHandler.bind(this));  
+
+            this._dragPane.addEventListener('mouseup', mouseUpHandler.bind(this));
+            this._dragPane.addEventListener('touchend', mouseUpHandler.bind(this));
+
+            this._dragPane.addEventListener('mouseout', event => {
+                console.info('mouseout', event)
+                mouseUpHandler.call(this, event);
+            });
+            this._dragPane.addEventListener('touchcancel', mouseUpHandler.bind(this));
+        }    
     }
     
     function mouseMoveHandler(event) {
         if (this._isDragging === true) {
             //event.preventDefault();
             this._onBoxDrag(event);
+            console.info('mousemove');
         }
     }
     
     function mouseUpHandler(event) {
-        if (this._isDragging === true) {
-            //event.preventDefault();
+        event.preventDefault();
+        
+        this._isDragging = false;
+        this._onBoxDragEnd(event);
+        console.info('mouseup', event);
+        // clean up dragPane
+        if (this._dragPane) {
+            if (this._dragPane.parentNode)
+                this._dragPane.parentNode.removeChild(this._dragPane);
             
-            this._isDragging = false;
-            this._onBoxDragEnd(event);
-            
-            // clean up dragPane
-            if (this._dragPane) {
-                this._dragPane.remove();
-            }
+            this._dragPane.remove();
+            delete this._dragPane;
         }
     }
-    
-    function mouseOutHandler(event) {
-        if (this._isDragging === true) {
-            // create a pane, so that you can drag everywhere
-            createDragPane.apply(this);
-            
-            if (this._dragPane) {
-                // register events
-                this._dragPane.addEventListener('mousemove', mouseMoveHandler.bind(this));    
-                this._dragPane.addEventListener('touchmove', mouseMoveHandler.bind(this));  
-
-                this._dragPane.addEventListener('mouseup', mouseUpHandler.bind(this));
-                this._dragPane.addEventListener('touchend', mouseUpHandler.bind(this));
-            }   
-        }
-    }
-    
+     
     function createDragPane() {
         this._dragPane = document.createElement("div");
-        this._dragPane.style.cssText = "position:absolute;top:0;bottom:0;left:0;right:0;background-color:transparent;z-index:1000;overflow:hidden;";
+        this._dragPane.style.cssText = "position:absolute;top:0;bottom:0;left:0;right:0;background-color:transparent;z-index:3000;overflow:hidden;";
         this._dragPane.id = "drag-pane";
         document.body.appendChild(this._dragPane);
         
+        /*
         function handlePaneOut(event) {
             mouseUpHandler.apply(this, event);
         }
 
         this._dragPane.addEventListener('mouseout', handlePaneOut.bind(this));
         this._dragPane.addEventListener('touchcancel', handlePaneOut.bind(this));
+        */
     }
     
     this._stageElement.addEventListener('mousedown', mouseDownHandler.bind(this));    
     this._stageElement.addEventListener('touchstart', mouseDownHandler.bind(this));    
-
-    this._stageElement.addEventListener('mousemove', mouseMoveHandler.bind(this));    
-    this._stageElement.addEventListener('touchmove', mouseMoveHandler.bind(this));   
-
-    this._stageElement.addEventListener('mouseup', mouseUpHandler.bind(this));
-    this._stageElement.addEventListener('touchend', mouseUpHandler.bind(this));
-
-    
-    this._stageElement.addEventListener('mouseout', mouseOutHandler.bind(this));
-    this._stageElement.addEventListener('touchcancel', mouseOutHandler.bind(this));
 }
 
 /**
@@ -450,17 +485,17 @@ DeviceOrientationInput.prototype._calculateRadiusVector = function (x, y) {
     var sphereY = (y - rect.top - rect.height / 2) / radius;
     var sqrSum = sphereX * sphereX + sphereY * sphereY;
     if (sqrSum > 0.5)
-        return new Geometry.Vector(sphereX, sphereY, 0.5 / Math.sqrt(sqrSum));
-
-    return new Geometry.Vector(sphereX, sphereY, Math.sqrt(1 - sqrSum));
+        return new Geometry.Vector(sphereX,sphereY,0.5 / Math.sqrt(sqrSum));
+    return new Geometry.Vector(sphereX,sphereY,Math.sqrt(1 - sqrSum));
 };
 
 DeviceOrientationInput.prototype._onBoxDragEnd = function() {
-    this._boxMatrix = this._currentMatrix;
+    //this._boxMatrix = this._currentMatrix;
 };
 
 DeviceOrientationInput.prototype._onBoxDragStart = function (event) {
     this._mouseDownVector = this._calculateRadiusVector(DeviceOrientationInput.getEventX(event), DeviceOrientationInput.getEventY(event));
+    this._originalBoxMatrix = this._boxMatrix;
 
     if (!this._mouseDownVector)
         return false;
@@ -469,66 +504,29 @@ DeviceOrientationInput.prototype._onBoxDragStart = function (event) {
     return true;
 };
 
-DeviceOrientationInput._matrixToCSSString = function (matrix) {
-    function generateCSSString(matrix){
-        var str = '';
-        str += matrix.m11.toFixed(20) + ',';
-        str += matrix.m12.toFixed(20) + ',';
-        str += matrix.m13.toFixed(20) + ',';
-        str += matrix.m14.toFixed(20) + ',';
-        str += matrix.m21.toFixed(20) + ',';
-        str += matrix.m22.toFixed(20) + ',';
-        str += matrix.m23.toFixed(20) + ',';
-        str += matrix.m24.toFixed(20) + ',';
-        str += matrix.m31.toFixed(20) + ',';
-        str += matrix.m32.toFixed(20) + ',';
-        str += matrix.m33.toFixed(20) + ',';
-        str += matrix.m34.toFixed(20) + ',';
-        str += matrix.m41.toFixed(20) + ',';
-        str += matrix.m42.toFixed(20) + ',';
-        str += matrix.m43.toFixed(20) + ',';
-        str += matrix.m44.toFixed(20);
-
-        return 'matrix3d(' + str + ')';
-    }
-
-    if (window.DOMMatrix && matrix instanceof window.DOMMatrix) {
-        var lang = navigator.language;
-        if (lang && lang.indexOf("en") >= 0) {
-            return matrix.toString(); // save on englisch systems    
-        }
-        
-        return generateCSSString(matrix);
-    }
-    
-    return matrix.toString();
-}
-
 DeviceOrientationInput.prototype._onBoxDrag = function(event) {
     var mouseMoveVector = this._calculateRadiusVector(DeviceOrientationInput.getEventX(event), DeviceOrientationInput.getEventY(event));
     if (!mouseMoveVector)
         return true;
 
     event.preventDefault();
-    var axis = Geometry.crossProduct(this._mouseDownVector, mouseMoveVector);
-    axis.normalize();
-    var angle = Geometry.calculateAngle(this._mouseDownVector, mouseMoveVector);
-    
-    var matrix = Geometry.Matrix();
-    var rotationMatrix = matrix.rotateAxisAngle(axis.x, axis.y, axis.z, angle);
-    this._currentMatrix = rotationMatrix.multiply(this._boxMatrix);
-    
-    // Crossbrowser and cross locale way of outputing the string
-    var matrixString = DeviceOrientationInput._matrixToCSSString(this._currentMatrix);
-    
-    this._boxElement.style.webkitTransform = matrixString;
-    this._boxElement.style.mozTransform = matrixString;
-    this._boxElement.style.transform = matrixString;
-    
-    var eulerAngles = Geometry.EulerAngles.fromRotationMatrix(this._currentMatrix);
-    
+
+    var axix;
+    var angle;
+
+    //if (event.shiftKey) {
+    //    axis = new Geometry.Vector(0, 0, -1);
+    //    angle = (this._mouseDownVector.x - mouseMoveVector.x) * 16;
+    //} else {
+        axis = Geometry.crossProduct(this._mouseDownVector, mouseMoveVector);
+        angle = Geometry.calculateAngle(this._mouseDownVector, mouseMoveVector);
+    //}
+
+    var currentMatrix = Geometry.Matrix(); // Returns a new Matrix Browser independent
+    currentMatrix = currentMatrix.rotate(-90, 0, 0).rotateAxisAngle(axis.x, axis.y, axis.z, angle).rotate(90, 0, 0).multiply(this._originalBoxMatrix);
+    var eulerAngles = Geometry.EulerAngles.fromRotationMatrix(currentMatrix);
     var newOrientation = new DeviceOrientation(-eulerAngles.alpha, -eulerAngles.beta, eulerAngles.gamma);
-    
+     
     this._setDeviceOrientation(newOrientation, "UserDrag");
     return false;
 };
@@ -541,10 +539,12 @@ DeviceOrientationInput.prototype._setBoxOrientation = function(deviceOrientation
     
     this._boxMatrix = matrix.rotate(-deviceOrientation.beta, deviceOrientation.gamma, -deviceOrientation.alpha);
     
-     var matrixString = DeviceOrientationInput._matrixToCSSString(this._boxMatrix);
-    this._boxElement.style.webkitTransform = matrixString;
-    this._boxElement.style.mozTransform = matrixString;
-    this._boxElement.style.transform = matrixString;
+    var eulerAngles = new Geometry.EulerAngles(deviceOrientation.alpha, deviceOrientation.beta, deviceOrientation.gamma);
+
+    var matrixString = eulerAngles.toRotate3DString();
+    this._orientationLayer.style.webkitTransform = matrixString;
+    this._orientationLayer.style.mozTransform = matrixString;
+    this._orientationLayer.style.transform = matrixString;
 };
 
 /**
@@ -556,11 +556,11 @@ DeviceOrientationInput.prototype._applyDeviceOrientationUserInput = function(eve
 }
 
 /**
- * Resets the orientation to (0, 0, 0)
+ * Resets the orientation to (90, 0, -90)
  */
 DeviceOrientationInput.prototype._resetDeviceOrientation = function(event) {
     event.preventDefault();
-    this._setDeviceOrientation(new DeviceOrientation(0, 0, 0), "ResetButton");
+    this._setDeviceOrientation(new DeviceOrientation(90, 0, -90), "ResetButton");
 }
 
 /**
@@ -569,15 +569,18 @@ DeviceOrientationInput.prototype._resetDeviceOrientation = function(event) {
 DeviceOrientationInput.prototype._setDeviceOrientation = function(deviceOrientation, modificationSource) {
     if (!deviceOrientation)
         return;
-
-    if (modificationSource != "UserInput") {
-        this._alphaElement.value = deviceOrientation.alpha;
-        this._betaElement.value = deviceOrientation.beta;
-        this._gammaElement.value = deviceOrientation.gamma;
+    
+    function roundAngle(angle) {
+        return (Math.round(angle * 10000) / 10000) % 361; // round module 361 to get values between 0 and 360
     }
 
-    if (modificationSource != "UserDrag")
-        this._setBoxOrientation(deviceOrientation);
+    if (modificationSource != "UserInput") {
+        this._alphaElement.value = roundAngle(deviceOrientation.alpha);
+        this._betaElement.value = roundAngle(deviceOrientation.beta);
+        this._gammaElement.value = roundAngle(deviceOrientation.gamma);
+    }
+
+    this._setBoxOrientation(deviceOrientation);
 
     if (this.options && this.options.onDeviceOrientationChange) {
         this.options.onDeviceOrientationChange.call(null, deviceOrientation);
