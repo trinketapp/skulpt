@@ -94,6 +94,7 @@ Sk.builtin.object.prototype.GenericSetAttr = function (name, value) {
     var dict;
     var tp = this.ob$type;
     var descr;
+    var f;
 
     goog.asserts.assert(typeof name === "string");
     goog.asserts.assert(tp !== undefined, "object has no ob$type!");
@@ -117,8 +118,8 @@ Sk.builtin.object.prototype.GenericSetAttr = function (name, value) {
 
     // otherwise, look in the type for a descr
     if (descr !== undefined && descr !== null && descr.ob$type !== undefined) {
-        // f = descr.ob$type.tp$descr_set;
-        if (!(f) && descr["__set__"]) {
+        //f = descr.ob$type.tp$descr_set;
+        if (descr["__set__"]) {
             f = descr["__set__"];
             Sk.misceval.callsimOrSuspend(f, descr, this, value);
             return;
