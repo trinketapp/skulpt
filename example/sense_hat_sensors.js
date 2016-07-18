@@ -157,7 +157,8 @@ function onLoad(event) {
             output: function (val) {
                 var newText = output.value + val;
                 output.value = newText;
-            } 
+            },
+            killableWhile: true
         });
         
         Sk.imageProxy = '';
