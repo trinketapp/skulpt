@@ -8,6 +8,40 @@
 var $builtinmodule = function (name) {
     var mod = {};
     
+    // http://blog.yjl.im/2010/09/simulating-normal-random-variable-using.html
+    // https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform#Polar_form
+    function _randomGaussian() {
+        if (this.haveNextNextGaussian) {
+            this.haveNextNextGaussian = false;
+            return this.nextNextGaussian;
+        }
+        var v1, v2, s;
+        do {
+            v1 = 2 * Math.random() - 1; // between -1.0 and 1.0
+            v2 = 2 * Math.random() - 1; // between -1.0 and 1.0
+            s = v1 * v1 + v2 * v2;
+        }
+        while (s >= 1 || s === 0);
+
+        var multiplier = Math.sqrt(-2 * Math.log(s) / s);
+        this.nextNextGaussian = v2 * multiplier;
+        this.haveNextNextGaussian = true;
+
+        return v1 * multiplier;
+    };
+
+    function constrain (aNumber, aMin, aMax) {
+	    return aNumber > aMax ? aMax : aNumber < aMin ? aMin : aNumber;
+    };
+
+    function randomGaussian (mean, error) {
+        var _randVal = constrain(_randomGaussian());
+        var randomGauss = mean + _randVal * Math.sqrt(error);
+        var max = mean + error;
+        var min = mean - error;
+        return Math.min(Math.max(min, randomGauss), max);
+    }
+
     function checkNumberAndReturn(val) {
         var parsed = parseFloat(val);
         // only numbers/floats are okay
@@ -185,8 +219,11 @@ var $builtinmodule = function (name) {
         if (jsPressure.value < 260 || jsPressure.value > 1260) {
             return Sk.ffi.remapToPy([].concat([0, jsPressure.value], jsTemperature));
         }
-        
-        return Sk.ffi.remapToPy([].concat([1, jsPressure.value], jsTemperature));
+
+        var errorRange = 0.1;
+        var valueWithError = randomGaussian(jsPressure.value, errorRange);
+
+        return Sk.ffi.remapToPy([].concat([1, valueWithError], jsTemperature));
     });
     
     /**
@@ -216,7 +253,15 @@ var $builtinmodule = function (name) {
             return Sk.ffi.remapToPy([].concat([0, jsHumidity.value], jsTemperature));
         }
         
-        return Sk.ffi.remapToPy([].concat([1, jsHumidity.value], jsTemperature));
+        /*
+         * Apply normal distribution on the return value:
+         *  Range: 20-80 with +-3.5%
+         *  Range: 0-100 with +-5%
+         */ 
+        var errorRange = jsHumidity.value >= 20 && jsHumidity.value <= 80 ? 3.5 : 5;
+        var valueWithError = randomGaussian(jsHumidity.value, errorRange);
+
+        return Sk.ffi.remapToPy([].concat([1, valueWithError], jsTemperature));
     });
     
     /**
@@ -243,8 +288,11 @@ var $builtinmodule = function (name) {
             return Sk.ffi.remapToPy([0, jsTemperature.value]); // invalid
         }
         
+        var errorRange = 2;
+        var valueWithError = randomGaussian(jsTemperature.value, errorRange);
+
         // return Python Array containing [isValid, temperature]
-        return Sk.ffi.remapToPy([1, jsTemperature.value]);
+        return Sk.ffi.remapToPy([1, valueWithError]);
     });
     
     mod.fusionPoseRead = new Sk.builtin.func(function () {

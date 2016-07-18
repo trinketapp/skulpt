@@ -56,6 +56,24 @@ function onLoad(event) {
        }
     });
 
+    var humidityInput = document.getElementById('device-humidity-overide');
+    humidityInput.addEventListener('input', function (event) {
+        event.preventDefault();
+        
+       var val = event.target.value;
+       
+       // only numbers/floats are okay
+       var isValid = !isNaN(parseFloat(val)) && isFinite(val);
+       if (isValid) {
+           val = parseFloat(val);
+           
+           
+           Sk.sense_hat.rtimu.humidity = [1, val];
+       } else {
+           Sk.sense_hat.rtimu.humidity = [0, -1];
+       }
+    });
+
     /****************************************************************
      * Here starts the skulpt specific stuff, e.g. run/stop btns input, output...
      ****************************************************************/
@@ -83,6 +101,14 @@ function onLoad(event) {
             var ledIndex = data;
             var ledData = window.sense_hat.pixels[ledIndex];
             
+            // Convert LED-RGB to RGB565 // and then to RGB555
+            var r = ledData[0] & ~7;
+            var g = ledData[1] & ~3;
+            var b = ledData[2] & ~7;
+
+            // set converted values
+            window.sense_hat.pixels[ledIndex] = [r, g, b];
+
             var led = document.getElementById('e' + ledIndex);
             
             if (ledData[0] > lowlightLimit || ledData[1] > lowlightLimit || ledData[2] > lowlightLimit) {
