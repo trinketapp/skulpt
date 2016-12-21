@@ -558,5 +558,16 @@ Sk.builtin.StopIteration = function (args) {
 Sk.abstr.setUpInheritance("StopIteration", Sk.builtin.StopIteration, Sk.builtin.Exception);
 goog.exportSymbol("Sk.builtin.StopIteration", Sk.builtin.StopIteration);
 
+Sk.builtin.KeyboardInterrupt = function (args) {
+    var o;
+    if (!(this instanceof Sk.builtin.KeyboardInterrupt)) {
+        o = Object.create(Sk.builtin.KeyboardInterrupt.prototype);
+        o.constructor.apply(o, arguments);
+        return o;
+    }
+    Sk.builtin.BaseException.apply(this, arguments);
+};
+Sk.abstr.setUpInheritance("KeyboardInterrupt", Sk.builtin.KeyboardInterrupt, Sk.builtin.BaseException);
+goog.exportSymbol("Sk.builtin.KeyboardInterrupt", Sk.builtin.KeyboardInterrupt);
 
 goog.exportSymbol("Sk", Sk);
