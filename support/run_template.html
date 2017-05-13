@@ -84,7 +84,8 @@ function runit(myDiv) {
     });
 
     myPromise.then(function(mod) {}, function(err) {
-        console.log(err.toString());
+        outf(err.toString());
+        outf(err.stack)
     });
 }
 </script>
