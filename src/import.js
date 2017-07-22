@@ -188,7 +188,7 @@ Sk.importSearchPathForName = function (name, ext, failok, canSuspend, currentDir
  *
  * @return {undefined}
  */
-Sk.doOneTimeInitialization = function () {
+Sk.doOneTimeInitialization = function (canSuspend) {
     var proto, name, i, x, func;
     var builtins = [];
 
@@ -207,10 +207,14 @@ Sk.doOneTimeInitialization = function () {
         for (base = parent; base !== undefined; base = base.tp$base) {
             bases.push(base);
         }
-
+        
+        child.tp$mro = new Sk.builtin.tuple([child]);
+        if (!child.tp$base){ 
+            child.tp$base = bases[0];
+        }
         child["$d"] = new Sk.builtin.dict([]);
         child["$d"].mp$ass_subscript(Sk.builtin.type.basesStr_, new Sk.builtin.tuple(bases));
-        child["$d"].mp$ass_subscript(Sk.builtin.type.mroStr_, new Sk.builtin.tuple([child]));
+        child["$d"].mp$ass_subscript(Sk.builtin.type.mroStr_, child.tp$mro);
     };
 
     for (x in Sk.builtin) {
@@ -233,13 +237,14 @@ Sk.doOneTimeInitialization = function () {
             break;
         }
 
+        proto[name].co_kwargs = null;
         proto[name] = new Sk.builtin.func(proto[name]);
     }
 
     // compile internal python files and add them to the __builtin__ module
     for (var file in Sk.internalPy.files) {
         var fileWithoutExtension = file.split(".")[0].split("/")[1];
-        var mod = Sk.importBuiltinWithBody(fileWithoutExtension, false, Sk.internalPy.files[file], false);
+        var mod = Sk.importBuiltinWithBody(fileWithoutExtension, false, Sk.internalPy.files[file], canSuspend);
         goog.asserts.assert(mod["$d"][fileWithoutExtension] !== undefined, "Should have imported name " + fileWithoutExtension);
         Sk.builtins[fileWithoutExtension] = mod["$d"][fileWithoutExtension];
     }
@@ -249,7 +254,7 @@ Sk.doOneTimeInitialization = function () {
  * currently only pull once from Sk.syspath. User might want to change
  * from js or from py.
  */
-Sk.importSetUpPath = function () {
+Sk.importSetUpPath = function (canSuspend) {
     var i;
     var paths;
     if (!Sk.realsyspath) {
@@ -263,7 +268,7 @@ Sk.importSetUpPath = function () {
         }
         Sk.realsyspath = new Sk.builtin.list(paths);
 
-        Sk.doOneTimeInitialization();
+        Sk.doOneTimeInitialization(canSuspend);
     }
 };
 
@@ -297,7 +302,7 @@ Sk.importModuleInternal_ = function (name, dumpJS, modname, suppliedPyBody, canS
     var parentModName;
     var modNameSplit;
     var toReturn;
-    Sk.importSetUpPath();
+    Sk.importSetUpPath(canSuspend);
 
     // if no module name override, supplied, use default name
     if (modname === undefined) {
@@ -566,10 +571,12 @@ Sk.builtin.__import__ = function (name, globals, locals, fromlist) {
     // a Python language module.  for some reason, __name__ gets overwritten.
     var saveSk = Sk.globals;
 
+    var file = Sk.ffi.remapToJs(locals["__file__"]);
+
     var currentDir =
-        locals["__file__"] === undefined ?
+        file === undefined ?
             undefined :
-            locals["__file__"].v.substring(0, locals["__file__"].v.lastIndexOf("/"));
+            file.substring(0, file.lastIndexOf("/"));
 
     var ret = Sk.importModuleInternal_(name, undefined, undefined, undefined, true, currentDir);
 

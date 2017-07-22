@@ -146,9 +146,9 @@ Sk.builtin.asnum$nofloat = function (a) {
         a = a.toString();
     }
 
-    //	Sk.debugout("INITIAL: " + a);
+    //  Sk.debugout("INITIAL: " + a);
 
-    //	If not a float, great, just return this
+    //  If not a float, great, just return this
     if (a.indexOf(".") < 0 && a.indexOf("e") < 0 && a.indexOf("E") < 0) {
         return a;
     }
@@ -169,7 +169,7 @@ Sk.builtin.asnum$nofloat = function (a) {
 
     decimal = mantissa.indexOf(".");
 
-    //	Simplest case, no decimal
+    //  Simplest case, no decimal
     if (decimal < 0) {
         if (expon >= 0) {
             // Just add more zeroes and we're done
@@ -186,7 +186,7 @@ Sk.builtin.asnum$nofloat = function (a) {
         }
     }
 
-    //	Negative exponent OR decimal (neg or pos exp)
+    //  Negative exponent OR decimal (neg or pos exp)
     if (decimal === 0) {
         mantissa = mantissa.substr(1);
     } else if (decimal < mantissa.length) {
@@ -674,6 +674,12 @@ Sk.builtin.open = function open (filename, mode, bufsize) {
         mode = new Sk.builtin.str("r");
     }
 
+    if (/\+/.test(mode.v)) {
+        throw "todo; haven't implemented read/write mode";
+    } else if ((mode.v === "w" || mode.v === "wb" || mode.v === "a" || mode.v === "ab") && !Sk.nonreadopen) {
+        throw "todo; haven't implemented non-read opens";
+    }
+
     return new Sk.builtin.file(filename, mode, bufsize);
 };
 
@@ -831,10 +837,6 @@ Sk.builtin.jseval = function jseval (evalcode) {
 Sk.builtin.jsmillis = function jsmillis () {
     var now = new Date();
     return now.valueOf();
-};
-
-Sk.builtin.superbi = function superbi () {
-    throw new Sk.builtin.NotImplementedError("super is not yet implemented, please report your use case as a github issue.");
 };
 
 Sk.builtin.eval_ = function eval_ () {

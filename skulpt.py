@@ -69,6 +69,7 @@ Files = [
         ('support/closure-library/closure/goog/debug/error.js',     FILE_TYPE_DIST),
         ('support/closure-library/closure/goog/asserts/asserts.js', FILE_TYPE_DIST),
         ('support/es6-promise-polyfill/promise-1.0.0.hacked.js',    FILE_TYPE_DIST),
+        'support/setImmediate/setImmediate.js',
         'src/env.js',
         'src/type.js',
         'src/abstract.js',
@@ -114,6 +115,7 @@ Files = [
         'src/import.js',
         'src/timsort.js',
         'src/sorted.js',
+        'src/typeobject.js',
         'src/builtindict.js',
         'src/constants.js',
         'src/internalpython.js',
@@ -731,24 +733,29 @@ def dist(options):
     compfn = os.path.join(DIST_DIR, OUTFILE_MIN)
     builtinfn = os.path.join(DIST_DIR, OUTFILE_LIB)
     debuggerfn = os.path.join(DIST_DIR, OUTFILE_DEBUGGER)
+    
+    if options.disabletests == False:
+        # Run tests on uncompressed.
+        if options.verbose:
+            print ". Running tests on uncompressed..."
 
-    # Run tests on uncompressed.
-    if options.verbose:
-        print ". Running tests on uncompressed..."
+        ret = test()
 
-    ret = test()
+        # Run tests on uncompressed.
+        if options.verbose:
+            print ". Re-Running tests on uncompressed... with debug mode on to find suspension errors."
 
-    # turn the tests in debug mode off because they take too long
-    # # Run tests on uncompressed.
-    # if options.verbose:
-    #     print ". Re-Running tests on uncompressed... with debug mode on to find suspension errors."
-    #
-    #
-    # ret = test(debug_mode=True)
+        # turn the tests in debug mode off because they take too long
+        # # Run tests on uncompressed.
+        # if options.verbose:
+        #     print ". Re-Running tests on uncompressed... with debug mode on to find suspension errors."
+        #
+        #
+        # ret = test(debug_mode=True)
 
-    if ret != 0:
-        print "Tests failed on uncompressed version."
-        sys.exit(1);
+        if ret != 0:
+            print "Tests failed on uncompressed version."
+            sys.exit(1);
 
     # compress
     uncompfiles = ' '.join(['--js ' + x for x in getFileList(FILE_TYPE_DIST, include_ext_libs=False)])
@@ -771,7 +778,6 @@ def dist(options):
 
     # Copy the debugger file to the output dir
 
-
     if options.verbose:
         print ". Bundling external libraries..."
 
@@ -787,17 +793,19 @@ def dist(options):
 
 
     # Run tests on compressed.
-    if options.verbose:
-        print ". Running tests on compressed..."
-    buildNamedTestsFile()
-    ret = os.system("{0} {1} {2}".format(jsengine, compfn, ' '.join(TestFiles)))
-    if ret != 0:
-        print "Tests failed on compressed version."
-        sys.exit(1)
-    ret = rununits(opt=True)
-    if ret != 0:
-        print "Tests failed on compressed unit tests"
-        sys.exit(1)
+    if options.disabletests == False:
+        if options.verbose:
+            print ". Running tests on compressed..."
+        buildNamedTestsFile()
+        ret = os.system("{0} {1} {2}".format(jsengine, compfn, ' '.join(TestFiles)))
+        if ret != 0:
+            print "Tests failed on compressed version."
+            sys.exit(1)
+        ret = rununits(opt=True)
+        if ret != 0:
+            print "Tests failed on compressed unit tests"
+            sys.exit(1)
+
 
     doc()
 
@@ -1289,6 +1297,7 @@ def main():
     parser.add_option("-q", "--quiet",        action="store_false", dest="verbose")
     parser.add_option("-s", "--silent",       action="store_true",  dest="silent",       default=False)
     parser.add_option("-u", "--uncompressed", action="store_true",  dest="uncompressed", default=False)
+    parser.add_option("-d", "--disabletests", action="store_true", dest="disabletests", default=False)
     parser.add_option("-v", "--verbose",
         action="store_true",
         dest="verbose",

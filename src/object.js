@@ -16,7 +16,9 @@ Sk.builtin.object = function () {
     return this;
 };
 
-
+Sk.builtin.object.prototype.__init__ = function __init__() { 
+    return Sk.builtin.none.none$;
+};
 
 var _tryGetSubscript = function(dict, pyName) {
     try {
@@ -45,6 +47,7 @@ Sk.builtin.object.prototype.GenericGetAttr = function (name, canSuspend) {
     goog.asserts.assert(tp !== undefined, "object has no ob$type!");
 
     dict = this["$d"] || this.constructor["$d"];
+    //print("getattr", tp.tp$name, name);
 
     // todo; assert? force?
     if (dict) {
@@ -415,7 +418,7 @@ Sk.builtin.object.prototype.ob$ge = function (other) {
  * @type {Array}
  */
 Sk.builtin.object.pythonFunctions = ["__repr__", "__str__", "__hash__",
-"__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__", "__getattr__", "__setattr__"];
+"__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__", "__getattr__", "__setattr__", "__init__"];
 
 /**
  * @constructor
