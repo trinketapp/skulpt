@@ -138,15 +138,16 @@ var Ident = "[a-zA-Z_]\\w*";
 
 var Binnumber = "0[bB][01]*";
 var Hexnumber = "0[xX][\\da-fA-F]*[lL]?";
-var Octnumber = "0[oO]?[0-7]*[lL]?";
 var Decnumber = "[1-9]\\d*[lL]?";
-var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
 
 var Exponent = "[eE][-+]?\\d+";
 var Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
 var Expfloat = "\\d+" + Exponent;
 var Floatnumber = group(Pointfloat, Expfloat);
 var Imagnumber = group("\\d+[jJ]", Floatnumber + "[jJ]");
+
+var Octnumber = "0[oO]?[0-7]*[lL]?";
+var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
 var Number_ = group(Imagnumber, Floatnumber, Intnumber);
 
 // tail end of ' string
@@ -179,8 +180,6 @@ var ContStr = group("[uUbB]?[rR]?'[^\\n'\\\\]*(?:\\\\.[^\\n'\\\\]*)*" +
         group("\"", "\\\\\\r?\\n"));
 var PseudoExtras = group("\\\\\\r?\\n", Comment_, Triple);
 // Need to prefix with "^" as we only want to match what's next
-var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
-
 
 var triple_quoted = {
     "'''"  : true, '"""': true,
@@ -253,6 +252,11 @@ Sk.Tokenizer.prototype.generateTokens = function (line) {
     // bnm - Move these definitions in this function otherwise test state is preserved between
     // calls on single3prog and double3prog causing weird errors with having multiple instances
     // of triple quoted strings in the same program.
+
+    var Octnumber = Sk.__future__.silent_octal ? "0[oO]?[0-7]*[lL]?" : "0[oO][0-7]*[lL]?";
+    var Intnumber = group(Binnumber, Hexnumber, Octnumber, Decnumber);
+    var Number_ = group(Imagnumber, Floatnumber, Intnumber);
+    var PseudoToken = "^" + group(PseudoExtras, Number_, Funny, ContStr, Ident);
 
     var pseudoprog = new RegExp(PseudoToken);
     var single3prog = new RegExp(Single3, "g");
