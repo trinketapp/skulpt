@@ -44,5 +44,8 @@
     "jshint": "~2.5.2",
     "jscs": "~1.12",
     "jsdoc": "~3.3.2"
+  },
+  "prettier": {
+    "tabWidth": 4
   }
 }
