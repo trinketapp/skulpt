@@ -13,8 +13,8 @@ class RTIMU:
   """
     https://github.com/richards-tech/RTIMULib2/blob/master/Linux/python/PyRTIMU_RTIMU.cpp
   """
-  def __init__(self, imu_settings):
-    self._imu_settings = imu_settings
+  def __init__(self):
+    # self._imu_settings = imu_settings
     self._compass_enabled = True
     self._gyro_enabled = False
     self._accel_enabled = True
