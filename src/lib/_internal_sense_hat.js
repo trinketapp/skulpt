@@ -73,6 +73,16 @@ var $builtinmodule = function (name) {
         var _index;
         var _value;
 
+        if (Sk.builtin.checkIterable(value)) {
+            throw new Sk.builtin.ValueError("'value' should be iterable")
+        }
+
+        for (var i in value.v) {
+            if (!Sk.builtin.checkInt(value.v[i])) {
+                throw new Sk.builtin.ValueError("'value' should be iterable of 'int'")
+            }
+        }
+
         _index = Sk.ffi.remapToJs(index);
         _value = Sk.ffi.remapToJs(value);
 
