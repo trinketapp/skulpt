@@ -73,7 +73,7 @@ var $builtinmodule = function (name) {
         var _index;
         var _value;
 
-        if (Sk.builtin.checkIterable(value)) {
+        if (!Sk.builtin.checkIterable(value)) {
             throw new Sk.builtin.ValueError("'value' should be iterable")
         }
 

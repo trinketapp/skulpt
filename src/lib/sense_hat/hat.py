@@ -13,8 +13,8 @@ class RTIMU:
   """
     https://github.com/richards-tech/RTIMULib2/blob/master/Linux/python/PyRTIMU_RTIMU.cpp
   """
-  def __init__(self):
-    # self._imu_settings = imu_settings
+  def __init__(self, imu_settings):
+    self._imu_settings = imu_settings
     self._compass_enabled = True
     self._gyro_enabled = False
     self._accel_enabled = True
@@ -270,12 +270,9 @@ class SenseHat(object):
     SENSE_HAT_FB_GAMMA_USER = 2
     SETTINGS_HOME_PATH = '.config/sense_hat'
 
-    def __init__(
-            self,
-            imu_settings_file='RTIMULib',
-            text_assets='sense_hat_text'
-        ):
-
+    def __init__(self):
+        imu_settings_file='RTIMULib'
+        text_assets='sense_hat_text'
         self._fb_device = self._get_fb_device()
         if self._fb_device is None:
             raise OSError('Cannot detect %s device' % self.SENSE_HAT_FB_NAME)
