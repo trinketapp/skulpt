@@ -138,7 +138,7 @@ var Ident = "[a-zA-Z_]\\w*";
 
 var Binnumber = "0[bB][01]*";
 var Hexnumber = "0[xX][\\da-fA-F]*[lL]?";
-var Decnumber = "[1-9]\\d*[lL]?";
+var Decnumber = "0|[1-9]\\d*[lL]?";
 
 var Exponent = "[eE][-+]?\\d+";
 var Pointfloat = group("\\d+\\.\\d*", "\\.\\d+") + maybe(Exponent);
