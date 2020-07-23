@@ -591,14 +591,14 @@ Sk.importStar = function (module, loc, global) {
     if (__all__) {
         // TODO this does not support naming *modules* in __all__,
         // only variables
-        for(let it = Sk.abstr.iter(__all__), i = it.tp$iternext();
+        for(var it = Sk.abstr.iter(__all__), i = it.tp$iternext();
             i !== undefined; i = it.tp$iternext()) {
 
             loc[i.v] = Sk.abstr.gattr(module, i);
         }
     } else {
-        let props = Object["getOwnPropertyNames"](module["$d"]);
-        for (let i in props) {
+        var props = Object["getOwnPropertyNames"](module["$d"]);
+        for (var i in props) {
             if (props[i].charAt(0) != "_") {
                 loc[props[i]] = module["$d"][props[i]];
             }
