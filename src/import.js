@@ -184,9 +184,9 @@ Sk.importModuleInternal_ = function (name, dumpJS, modname, suppliedPyBody, rela
     var ret;
     var module;
     var topLevelModuleToReturn = null;
-    var relativePackageName = relativeToPackage !== undefined ? relativeToPackage.tp$getattr(Sk.builtin.str.$name) : undefined;
+    var relativePackageName = relativeToPackage !== undefined ? relativeToPackage.tp$getattr("__name__") : undefined;
     var absolutePackagePrefix = relativePackageName !== undefined ? relativePackageName.v + "." : "";
-    var searchPath = relativeToPackage !== undefined ? relativeToPackage.tp$getattr(Sk.builtin.str.$path) : undefined;
+    var searchPath = relativeToPackage !== undefined ? relativeToPackage.tp$getattr("__path__") : undefined;
     Sk.importSetUpPath(canSuspend);
 
     if (relativeToPackage && !relativePackageName) {
@@ -237,7 +237,7 @@ Sk.importModuleInternal_ = function (name, dumpJS, modname, suppliedPyBody, rela
                 }
                 parentModule = Sk.sysmodules.mp$subscript(absolutePackagePrefix + parentModName);
                 searchFileName = modNameSplit[modNameSplit.length-1];
-                searchPath = parentModule.tp$getattr(Sk.builtin.str.$path);
+                searchPath = parentModule.tp$getattr("__path__");
             }
 
             // otherwise:
@@ -327,7 +327,7 @@ Sk.importModuleInternal_ = function (name, dumpJS, modname, suppliedPyBody, rela
                     var pad;
                     var width;
                     var i;
-                    var beaut = Sk.js_beautify(code);
+                    var beaut = js_beautify(code);
                     var lines = beaut.split("\n");
                     for (i = 1; i <= lines.length; ++i) {
                         width = ("" + i).length;
@@ -346,7 +346,7 @@ Sk.importModuleInternal_ = function (name, dumpJS, modname, suppliedPyBody, rela
 
             finalcode += "\n" + co.funcname + ";";
 
-            modscope = Sk.global["eval"](finalcode);
+            modscope = goog.global["eval"](finalcode);
 
             module["$d"] = {
                 "__name__": new Sk.builtin.str(modname),
@@ -397,13 +397,13 @@ Sk.importModuleInternal_ = function (name, dumpJS, modname, suppliedPyBody, rela
             if (topLevelModuleToReturn) {
                 // if we were a dotted name, then we want to return the top-most
                 // package. we store ourselves into our parent as an attribute
-                parentModule.tp$setattr(new Sk.builtin.str(modNameSplit[modNameSplit.length - 1]), module);
+                parentModule.tp$setattr(modNameSplit[modNameSplit.length - 1], module);
                 //print("import returning parent module, modname", modname, "__name__", toReturn.tp$getattr("__name__").v);
                 return topLevelModuleToReturn;
             }
 
             if (relativeToPackage) {
-                relativeToPackage.tp$setattr(new Sk.builtin.str(name), module);
+                relativeToPackage.tp$setattr(name, module);
             }
 
             //print("name", name, "modname", modname, "returning leaf");
@@ -562,7 +562,7 @@ Sk.builtin.__import__ = function (name, globals, locals, fromlist, level) {
 
                 // "ret" is the module we're importing from
                 // Only import from file system if we have not found the fromName in the current module
-                if (fromName != "*" && leafModule.tp$getattr(new Sk.builtin.str(fromName)) === undefined) {
+                if (fromName != "*" && leafModule.tp$getattr(fromName) === undefined) {
                     importChain = Sk.misceval.chain(importChain,
                                                     Sk.importModuleInternal_.bind(null, fromName, undefined, undefined, undefined, leafModule, true, true)
                     );
@@ -572,7 +572,7 @@ Sk.builtin.__import__ = function (name, globals, locals, fromlist, level) {
             return Sk.misceval.chain(importChain, function() {
                 // if there's a fromlist we want to return the leaf module
                 // (ret), not the toplevel namespace
-                Sk.asserts.assert(leafModule);
+                goog.asserts.assert(leafModule);
                 return leafModule;
             });
         }
@@ -594,7 +594,7 @@ Sk.importStar = function (module, loc, global) {
         for(var it = Sk.abstr.iter(__all__), i = it.tp$iternext();
             i !== undefined; i = it.tp$iternext()) {
 
-            loc[i.v] = Sk.abstr.gattr(module, i);
+            loc[i.v] = Sk.abstr.gattr(module, i, false);
         }
     } else {
         var props = Object["getOwnPropertyNames"](module["$d"]);

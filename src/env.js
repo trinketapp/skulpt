@@ -57,7 +57,7 @@ Sk.python2 = {
 Sk.python3 = {
     print_function: true,
     division: true,
-    absolute_import: null,
+    absolute_import: true,
     unicode_literals: true,
     // skulpt specific
     set_repr: true,
