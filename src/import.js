@@ -586,7 +586,7 @@ Sk.builtin.__import__ = function (name, globals, locals, fromlist, level) {
 };
 
 Sk.importStar = function (module, loc, global) {
-    var __all__ = module.tp$getattr(new Sk.builtin.str("__all__"));
+    var __all__ = module.tp$getattr("__all__");
 
     if (__all__) {
         // TODO this does not support naming *modules* in __all__,
@@ -598,9 +598,9 @@ Sk.importStar = function (module, loc, global) {
         }
     } else {
         var props = Object["getOwnPropertyNames"](module["$d"]);
-        for (var i in props) {
-            if (props[i].charAt(0) != "_") {
-                loc[props[i]] = module["$d"][props[i]];
+        for (var j in props) {
+            if (props[j].charAt(0) != "_") {
+                loc[props[j]] = module["$d"][props[j]];
             }
         }
     }
