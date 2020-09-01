@@ -270,12 +270,9 @@ class SenseHat(object):
     SENSE_HAT_FB_GAMMA_USER = 2
     SETTINGS_HOME_PATH = '.config/sense_hat'
 
-    def __init__(
-            self,
-            imu_settings_file='RTIMULib',
-            text_assets='sense_hat_text'
-        ):
-
+    def __init__(self):
+        imu_settings_file='RTIMULib'
+        text_assets='sense_hat_text'
         self._fb_device = self._get_fb_device()
         if self._fb_device is None:
             raise OSError('Cannot detect %s device' % self.SENSE_HAT_FB_NAME)
